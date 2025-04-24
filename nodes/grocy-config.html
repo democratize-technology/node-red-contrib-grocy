@@ -1,0 +1,45 @@
+<script type="text/javascript">
+    RED.nodes.registerType('grocy-config', {
+        category: 'config',
+        defaults: {
+            name: { value: "" },
+            apiUrl: { value: "", required: true }
+        },
+        credentials: {
+            apiKey: { type: "password", required: true }
+        },
+        label: function() {
+            return this.name || "Grocy API";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="grocy-config">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-apiUrl"><i class="fa fa-globe"></i> API URL</label>
+        <input type="text" id="node-config-input-apiUrl" placeholder="https://your-grocy-instance.com">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-apiKey"><i class="fa fa-key"></i> API Key</label>
+        <input type="password" id="node-config-input-apiKey">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="grocy-config">
+    <p>Grocy API connection configuration</p>
+    
+    <h3>Details</h3>
+    <p>This node configures the connection to your Grocy instance.</p>
+    
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>API URL <span class="property-type">string</span></dt>
+        <dd>The URL of your Grocy instance (e.g., https://your-grocy-instance.com)</dd>
+        <dt>API Key <span class="property-type">string</span></dt>
+        <dd>Your Grocy API key. Can be generated in the Grocy settings under "Manage API keys".</dd>
+    </dl>
+</script>

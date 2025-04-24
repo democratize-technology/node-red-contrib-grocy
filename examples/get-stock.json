@@ -1,0 +1,72 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Grocy Stock Example",
+        "disabled": false,
+        "info": "Example flow showing how to get current stock using Grocy nodes"
+    },
+    {
+        "id": "4e1c3a5.28a0b74",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "Get Stock",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 120,
+        "wires": [
+            [
+                "c5c1d80c.5b6988"
+            ]
+        ]
+    },
+    {
+        "id": "c5c1d80c.5b6988",
+        "type": "grocy-stock",
+        "z": "f6f2187d.f17ca8",
+        "name": "Get Current Stock",
+        "server": "3a51942a.3cb3ac",
+        "operation": "getStock",
+        "x": 340,
+        "y": 120,
+        "wires": [
+            [
+                "9e4fc4cb.dd3378"
+            ]
+        ]
+    },
+    {
+        "id": "9e4fc4cb.dd3378",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "Current Stock",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "3a51942a.3cb3ac",
+        "type": "grocy-config",
+        "name": "My Grocy",
+        "apiUrl": "https://your-grocy-instance.com"
+    }
+]

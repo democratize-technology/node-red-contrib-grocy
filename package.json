@@ -1,0 +1,56 @@
+{
+  "name": "node-red-contrib-grocy",
+  "version": "0.1.0",
+  "description": "Node-RED nodes to interact with the Grocy API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node-red",
+    "grocy",
+    "api",
+    "stock",
+    "shopping-list",
+    "chores",
+    "tasks",
+    "batteries"
+  ],
+  "author": {
+    "name": "Democratize Technology",
+    "email": "hello@democratize.technology",
+    "url": "https://democratize.technology"
+  },
+  "license": "MIT",
+  "node-red": {
+    "nodes": {
+      "grocy-config": "nodes/grocy-config.js",
+      "grocy-api": "nodes/grocy-api.js",
+      "grocy-stock": "nodes/grocy-stock.js",
+      "grocy-shopping-list": "nodes/grocy-shopping-list.js",
+      "grocy-chores": "nodes/grocy-chores.js",
+      "grocy-batteries": "nodes/grocy-batteries.js"
+    },
+    "examples": {
+      "Get Stock": "examples/get-stock.json",
+      "Shopping List": "examples/shopping-list.json",
+      "Batteries Management": "examples/batteries.json",
+      "Chores & Tasks": "examples/chores.json",
+      "API Advanced Usage": "examples/api-usage.json"
+    }
+  },
+  "dependencies": {
+    "node-grocy": "^0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/democratize-technology/node-red-contrib-grocy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/democratize-technology/node-red-contrib-grocy/issues"
+  },
+  "homepage": "https://github.com/democratize-technology/node-red-contrib-grocy#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

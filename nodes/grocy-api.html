@@ -1,0 +1,219 @@
+<script type="text/javascript">
+    RED.nodes.registerType('grocy-api', {
+        category: 'Grocy',
+        color: '#73C5FF',
+        defaults: {
+            name: { value: "" },
+            server: { type: "grocy-config", required: true },
+            operation: { value: "", required: true },
+            entityType: { value: "" }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "grocy.svg",
+        label: function() {
+            return this.name || this.operation || "Grocy API";
+        },
+        paletteLabel: "Grocy API",
+        oneditprepare: function() {
+            const node = this;
+            
+            // Lists of operations by category
+            const operations = {
+                system: [
+                    { value: "getSystemInfo", label: "Get System Info" },
+                    { value: "getDbChangedTime", label: "Get DB Changed Time" },
+                    { value: "getConfig", label: "Get Config" },
+                    { value: "getTime", label: "Get Time" }
+                ],
+                stock: [
+                    { value: "getStock", label: "Get Stock" },
+                    { value: "getStockEntry", label: "Get Stock Entry" },
+                    { value: "editStockEntry", label: "Edit Stock Entry" },
+                    { value: "getVolatileStock", label: "Get Volatile Stock" },
+                    { value: "getProductDetails", label: "Get Product Details" },
+                    { value: "getProductByBarcode", label: "Get Product By Barcode" },
+                    { value: "addProductToStock", label: "Add Product To Stock" },
+                    { value: "addProductToStockByBarcode", label: "Add Product To Stock By Barcode" },
+                    { value: "consumeProduct", label: "Consume Product" },
+                    { value: "consumeProductByBarcode", label: "Consume Product By Barcode" },
+                    { value: "transferProduct", label: "Transfer Product" },
+                    { value: "inventoryProduct", label: "Inventory Product" },
+                    { value: "openProduct", label: "Open Product" }
+                ],
+                shoppingList: [
+                    { value: "addMissingProductsToShoppingList", label: "Add Missing Products To Shopping List" },
+                    { value: "addOverdueProductsToShoppingList", label: "Add Overdue Products To Shopping List" },
+                    { value: "addExpiredProductsToShoppingList", label: "Add Expired Products To Shopping List" },
+                    { value: "clearShoppingList", label: "Clear Shopping List" },
+                    { value: "addProductToShoppingList", label: "Add Product To Shopping List" },
+                    { value: "removeProductFromShoppingList", label: "Remove Product From Shopping List" }
+                ],
+                entity: [
+                    { value: "getObjects", label: "Get Objects" },
+                    { value: "addObject", label: "Add Object" },
+                    { value: "getObject", label: "Get Object" },
+                    { value: "editObject", label: "Edit Object" },
+                    { value: "deleteObject", label: "Delete Object" }
+                ],
+                userfields: [
+                    { value: "getUserfields", label: "Get Userfields" },
+                    { value: "setUserfields", label: "Set Userfields" }
+                ],
+                files: [
+                    { value: "getFile", label: "Get File" },
+                    { value: "uploadFile", label: "Upload File" },
+                    { value: "deleteFile", label: "Delete File" }
+                ],
+                users: [
+                    { value: "getUsers", label: "Get Users" },
+                    { value: "createUser", label: "Create User" },
+                    { value: "editUser", label: "Edit User" },
+                    { value: "deleteUser", label: "Delete User" },
+                    { value: "getCurrentUser", label: "Get Current User" },
+                    { value: "getUserSettings", label: "Get User Settings" },
+                    { value: "getUserSetting", label: "Get User Setting" },
+                    { value: "setUserSetting", label: "Set User Setting" }
+                ],
+                recipes: [
+                    { value: "addRecipeProductsToShoppingList", label: "Add Recipe Products To Shopping List" },
+                    { value: "getRecipeFulfillment", label: "Get Recipe Fulfillment" },
+                    { value: "consumeRecipe", label: "Consume Recipe" },
+                    { value: "getAllRecipesFulfillment", label: "Get All Recipes Fulfillment" }
+                ],
+                chores: [
+                    { value: "getChores", label: "Get Chores" },
+                    { value: "getChoreDetails", label: "Get Chore Details" },
+                    { value: "executeChore", label: "Execute Chore" }
+                ],
+                batteries: [
+                    { value: "getBatteries", label: "Get Batteries" },
+                    { value: "getBatteryDetails", label: "Get Battery Details" },
+                    { value: "chargeBattery", label: "Charge Battery" }
+                ],
+                tasks: [
+                    { value: "getTasks", label: "Get Tasks" },
+                    { value: "completeTask", label: "Complete Task" },
+                    { value: "undoTask", label: "Undo Task" }
+                ],
+                calendar: [
+                    { value: "getCalendar", label: "Get Calendar" },
+                    { value: "getCalendarSharingLink", label: "Get Calendar Sharing Link" }
+                ]
+            };
+            
+            // Entity types for entity operations
+            const entityTypes = [
+                { value: "products", label: "Products" },
+                { value: "locations", label: "Locations" },
+                { value: "shopping_list", label: "Shopping Lists" },
+                { value: "shopping_list_items", label: "Shopping List Items" },
+                { value: "recipes", label: "Recipes" },
+                { value: "recipes_pos", label: "Recipe Positions" },
+                { value: "tasks", label: "Tasks" },
+                { value: "task_categories", label: "Task Categories" },
+                { value: "chores", label: "Chores" },
+                { value: "batteries", label: "Batteries" },
+            ];
+            
+            // Populate operation dropdown
+            const $operationField = $('#node-input-operation');
+            
+            // Add category headers and options
+            Object.keys(operations).forEach(category => {
+                const $optgroup = $('<optgroup>').attr('label', category.charAt(0).toUpperCase() + category.slice(1));
+                
+                operations[category].forEach(op => {
+                    $optgroup.append($('<option>').val(op.value).text(op.label));
+                });
+                
+                $operationField.append($optgroup);
+            });
+            
+            // Populate entity type dropdown
+            const $entityTypeField = $('#node-input-entityType');
+            entityTypes.forEach(entity => {
+                $entityTypeField.append($('<option>').val(entity.value).text(entity.label));
+            });
+            
+            // Set current values
+            $operationField.val(node.operation);
+            $entityTypeField.val(node.entityType);
+            
+            // Show/hide entity type field based on operation selection
+            function updateEntityTypeVisibility() {
+                const operation = $operationField.val();
+                const isEntityOperation = ['getObjects', 'addObject', 'getObject', 'editObject', 'deleteObject'].includes(operation);
+                
+                if (isEntityOperation) {
+                    $('#entity-type-row').show();
+                } else {
+                    $('#entity-type-row').hide();
+                }
+            }
+            
+            // Set initial visibility
+            updateEntityTypeVisibility();
+            
+            // Update visibility when operation changes
+            $operationField.on('change', updateEntityTypeVisibility);
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="grocy-api">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-server"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+    <div class="form-row">
+        <label for="node-input-operation"><i class="fa fa-wrench"></i> Operation</label>
+        <select id="node-input-operation"></select>
+    </div>
+    <div class="form-row" id="entity-type-row">
+        <label for="node-input-entityType"><i class="fa fa-database"></i> Entity Type</label>
+        <select id="node-input-entityType"></select>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="grocy-api">
+    <p>A node to interact with the Grocy API.</p>
+    
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The parameters required for the operation</dd>
+        <dt>operation <span class="property-type">string</span></dt>
+        <dd>(Optional) Override the operation specified in the node configuration</dd>
+        <dt>options <span class="property-type">object</span></dt>
+        <dd>(Optional) Additional options for operations that support them</dd>
+    </dl>
+    
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The result of the Grocy API call</dd>
+    </dl>
+    
+    <h3>Details</h3>
+    <p>This node allows you to interact with the Grocy API. Select an operation and provide the necessary parameters in the <code>msg.payload</code>.</p>
+    
+    <p>For example, to add a product to stock:</p>
+    <pre>
+    msg.payload = {
+        productId: 1,
+        data: {
+            amount: 1,
+            best_before_date: "2023-12-31",
+            location_id: 1
+        }
+    };
+    return msg;
+    </pre>
+    
+    <p>For more details on available operations and required parameters, please refer to the Grocy API documentation.</p>
+</script>

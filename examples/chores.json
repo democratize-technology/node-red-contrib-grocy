@@ -1,0 +1,243 @@
+[
+    {
+        "id": "c7f2187d.f17ca4",
+        "type": "tab",
+        "label": "Grocy Chores Example",
+        "disabled": false,
+        "info": "Example flow showing how to work with chores and tasks using Grocy nodes"
+    },
+    {
+        "id": "1e1c3a5.28a0b81",
+        "type": "inject",
+        "z": "c7f2187d.f17ca4",
+        "name": "Get All Chores",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 120,
+        "wires": [
+            [
+                "2c1d80c.5b6991"
+            ]
+        ]
+    },
+    {
+        "id": "2c1d80c.5b6991",
+        "type": "grocy-chores",
+        "z": "c7f2187d.f17ca4",
+        "name": "List All Chores",
+        "server": "3a51942a.3cb3ac",
+        "operation": "getChores",
+        "x": 350,
+        "y": 120,
+        "wires": [
+            [
+                "3e4fc4cb.dd3381"
+            ]
+        ]
+    },
+    {
+        "id": "3e4fc4cb.dd3381",
+        "type": "debug",
+        "z": "c7f2187d.f17ca4",
+        "name": "Chores List",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "2e1c3a5.28a0b82",
+        "type": "inject",
+        "z": "c7f2187d.f17ca4",
+        "name": "Execute Chore",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"chore_id\": 1, \"tracked_time\": \"now\", \"done_by\": 1}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 180,
+        "wires": [
+            [
+                "4c1d80c.5b6992"
+            ]
+        ]
+    },
+    {
+        "id": "4c1d80c.5b6992",
+        "type": "grocy-chores",
+        "z": "c7f2187d.f17ca4",
+        "name": "Mark Chore as Done",
+        "server": "3a51942a.3cb3ac",
+        "operation": "executeChore",
+        "x": 370,
+        "y": 180,
+        "wires": [
+            [
+                "5e4fc4cb.dd3382"
+            ]
+        ]
+    },
+    {
+        "id": "5e4fc4cb.dd3382",
+        "type": "debug",
+        "z": "c7f2187d.f17ca4",
+        "name": "Execution Result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "6e1c3a5.28a0b83",
+        "type": "inject",
+        "z": "c7f2187d.f17ca4",
+        "name": "Get Due Chores",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"due_soon_days\": 5}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 240,
+        "wires": [
+            [
+                "7c1d80c.5b6993"
+            ]
+        ]
+    },
+    {
+        "id": "7c1d80c.5b6993",
+        "type": "grocy-chores",
+        "z": "c7f2187d.f17ca4",
+        "name": "Get Due Soon Chores",
+        "server": "3a51942a.3cb3ac",
+        "operation": "getDueChores",
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "8e4fc4cb.dd3383"
+            ]
+        ]
+    },
+    {
+        "id": "8e4fc4cb.dd3383",
+        "type": "debug",
+        "z": "c7f2187d.f17ca4",
+        "name": "Due Chores",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "9e1c3a5.28a0b84",
+        "type": "inject",
+        "z": "c7f2187d.f17ca4",
+        "name": "Get Tasks",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 300,
+        "wires": [
+            [
+                "ac1d80c.5b6994"
+            ]
+        ]
+    },
+    {
+        "id": "ac1d80c.5b6994",
+        "type": "grocy-chores",
+        "z": "c7f2187d.f17ca4",
+        "name": "Get Tasks",
+        "server": "3a51942a.3cb3ac",
+        "operation": "getTasks",
+        "x": 340,
+        "y": 300,
+        "wires": [
+            [
+                "be4fc4cb.dd3384"
+            ]
+        ]
+    },
+    {
+        "id": "be4fc4cb.dd3384",
+        "type": "debug",
+        "z": "c7f2187d.f17ca4",
+        "name": "Tasks List",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "3a51942a.3cb3ac",
+        "type": "grocy-config",
+        "name": "My Grocy",
+        "apiUrl": "https://your-grocy-instance.com"
+    }
+]

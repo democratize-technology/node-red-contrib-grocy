@@ -1,0 +1,116 @@
+<script type="text/javascript">
+    RED.nodes.registerType('grocy-shopping-list', {
+        category: 'Grocy',
+        color: '#73C5FF',
+        defaults: {
+            name: { value: "" },
+            server: { type: "grocy-config", required: true },
+            operation: { value: "getShoppingLists", required: true }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "grocy.svg",
+        label: function() {
+            return this.name || "Grocy Shopping List";
+        },
+        paletteLabel: "Grocy Shopping List",
+        oneditprepare: function() {
+            const node = this;
+            
+            // Shopping list operations
+            const operations = [
+                { value: "getShoppingLists", label: "Get Shopping Lists" },
+                { value: "getShoppingListItems", label: "Get Shopping List Items" },
+                { value: "addMissingProductsToShoppingList", label: "Add Missing Products To Shopping List" },
+                { value: "addOverdueProductsToShoppingList", label: "Add Overdue Products To Shopping List" },
+                { value: "addExpiredProductsToShoppingList", label: "Add Expired Products To Shopping List" },
+                { value: "clearShoppingList", label: "Clear Shopping List" },
+                { value: "addProductToShoppingList", label: "Add Product To Shopping List" },
+                { value: "removeProductFromShoppingList", label: "Remove Product From Shopping List" },
+                { value: "createShoppingList", label: "Create Shopping List" },
+                { value: "updateShoppingList", label: "Update Shopping List" },
+                { value: "deleteShoppingList", label: "Delete Shopping List" }
+            ];
+            
+            // Populate operation dropdown
+            const $operationField = $('#node-input-operation');
+            operations.forEach(op => {
+                $operationField.append($('<option>').val(op.value).text(op.label));
+            });
+            
+            // Set current value
+            $operationField.val(node.operation);
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="grocy-shopping-list">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-server"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+    <div class="form-row">
+        <label for="node-input-operation"><i class="fa fa-wrench"></i> Operation</label>
+        <select id="node-input-operation"></select>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="grocy-shopping-list">
+    <p>A node to interact with Grocy shopping lists.</p>
+    
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The parameters required for the shopping list operation</dd>
+        <dt>operation <span class="property-type">string</span></dt>
+        <dd>(Optional) Override the operation specified in the node configuration</dd>
+    </dl>
+    
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The result of the Grocy shopping list operation</dd>
+    </dl>
+    
+    <h3>Details</h3>
+    <p>This node provides access to Grocy's shopping list functions.</p>
+    
+    <h4>Available Operations:</h4>
+    <ul>
+        <li><b>getShoppingLists</b> - Get all shopping lists</li>
+        <li><b>getShoppingListItems</b> - Get items from a shopping list</li>
+        <li><b>addMissingProductsToShoppingList</b> - Add missing products to a shopping list</li>
+        <li><b>addOverdueProductsToShoppingList</b> - Add overdue products to a shopping list</li>
+        <li><b>addExpiredProductsToShoppingList</b> - Add expired products to a shopping list</li>
+        <li><b>clearShoppingList</b> - Clear a shopping list</li>
+        <li><b>addProductToShoppingList</b> - Add a product to a shopping list</li>
+        <li><b>removeProductFromShoppingList</b> - Remove a product from a shopping list</li>
+        <li><b>createShoppingList</b> - Create a new shopping list</li>
+        <li><b>updateShoppingList</b> - Update an existing shopping list</li>
+        <li><b>deleteShoppingList</b> - Delete a shopping list</li>
+    </ul>
+    
+    <h4>Example Usage:</h4>
+    <p>To get all shopping list items for a specific list:</p>
+    <pre>
+    msg.payload = {
+        shoppingListId: 1
+    };
+    return msg;
+    </pre>
+    
+    <p>To add a product to a shopping list:</p>
+    <pre>
+    msg.payload = {
+        product_id: 1,
+        shopping_list_id: 1,
+        amount: 2,
+        note: "Optional note"
+    };
+    return msg;
+    </pre>
+</script>

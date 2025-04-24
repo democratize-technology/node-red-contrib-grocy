@@ -1,0 +1,129 @@
+[
+    {
+        "id": "e6f2187d.f17ca9",
+        "type": "tab",
+        "label": "Grocy Shopping List Example",
+        "disabled": false,
+        "info": "Example flow showing how to work with shopping lists using Grocy nodes"
+    },
+    {
+        "id": "5e1c3a5.28a0b75",
+        "type": "inject",
+        "z": "e6f2187d.f17ca9",
+        "name": "Get Shopping Lists",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 180,
+        "y": 120,
+        "wires": [
+            [
+                "d5c1d80c.5b6989"
+            ]
+        ]
+    },
+    {
+        "id": "d5c1d80c.5b6989",
+        "type": "grocy-shopping-list",
+        "z": "e6f2187d.f17ca9",
+        "name": "Get Shopping Lists",
+        "server": "3a51942a.3cb3ac",
+        "operation": "getShoppingLists",
+        "x": 380,
+        "y": 120,
+        "wires": [
+            [
+                "8e4fc4cb.dd3379"
+            ]
+        ]
+    },
+    {
+        "id": "8e4fc4cb.dd3379",
+        "type": "debug",
+        "z": "e6f2187d.f17ca9",
+        "name": "Shopping Lists",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "6e1c3a5.28a0b76",
+        "type": "inject",
+        "z": "e6f2187d.f17ca9",
+        "name": "Add to Shopping List",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"product_id\": 1, \"shopping_list_id\": 1, \"amount\": 2}",
+        "payloadType": "json",
+        "x": 180,
+        "y": 180,
+        "wires": [
+            [
+                "e5c1d80c.5b6990"
+            ]
+        ]
+    },
+    {
+        "id": "e5c1d80c.5b6990",
+        "type": "grocy-shopping-list",
+        "z": "e6f2187d.f17ca9",
+        "name": "Add Product to List",
+        "server": "3a51942a.3cb3ac",
+        "operation": "addProductToShoppingList",
+        "x": 380,
+        "y": 180,
+        "wires": [
+            [
+                "9e4fc4cb.dd3380"
+            ]
+        ]
+    },
+    {
+        "id": "9e4fc4cb.dd3380",
+        "type": "debug",
+        "z": "e6f2187d.f17ca9",
+        "name": "Result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "3a51942a.3cb3ac",
+        "type": "grocy-config",
+        "name": "My Grocy",
+        "apiUrl": "https://your-grocy-instance.com"
+    }
+]

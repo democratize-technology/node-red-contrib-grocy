@@ -1,0 +1,124 @@
+<script type="text/javascript">
+    RED.nodes.registerType('grocy-chores', {
+        category: 'Grocy',
+        color: '#73C5FF',
+        defaults: {
+            name: { value: "" },
+            server: { type: "grocy-config", required: true },
+            operation: { value: "getChores", required: true }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "grocy.svg",
+        label: function() {
+            return this.name || "Grocy Chores & Tasks";
+        },
+        paletteLabel: "Grocy Chores & Tasks",
+        oneditprepare: function() {
+            const node = this;
+            
+            // Chores and tasks operations
+            const operations = [
+                // Chores operations
+                { value: "getChores", label: "Get Chores" },
+                { value: "getChoreDetails", label: "Get Chore Details" },
+                { value: "executeChore", label: "Execute Chore" },
+                
+                // Tasks operations
+                { value: "getTasks", label: "Get Tasks" },
+                { value: "completeTask", label: "Complete Task" },
+                { value: "undoTask", label: "Undo Task" },
+                { value: "addTask", label: "Add Task" },
+                { value: "editTask", label: "Edit Task" },
+                { value: "deleteTask", label: "Delete Task" }
+            ];
+            
+            // Populate operation dropdown
+            const $operationField = $('#node-input-operation');
+            operations.forEach(op => {
+                $operationField.append($('<option>').val(op.value).text(op.label));
+            });
+            
+            // Set current value
+            $operationField.val(node.operation);
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="grocy-chores">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-server"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+    <div class="form-row">
+        <label for="node-input-operation"><i class="fa fa-wrench"></i> Operation</label>
+        <select id="node-input-operation"></select>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="grocy-chores">
+    <p>A node to interact with Grocy chores and tasks.</p>
+    
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The parameters required for the chores/tasks operation</dd>
+        <dt>operation <span class="property-type">string</span></dt>
+        <dd>(Optional) Override the operation specified in the node configuration</dd>
+        <dt>options <span class="property-type">object</span></dt>
+        <dd>(Optional) Additional options for certain operations like filters and sorting</dd>
+    </dl>
+    
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The result of the Grocy chores/tasks operation</dd>
+    </dl>
+    
+    <h3>Details</h3>
+    <p>This node provides access to Grocy's chores and tasks management functions.</p>
+    
+    <h4>Chores Operations:</h4>
+    <ul>
+        <li><b>getChores</b> - Get all chores</li>
+        <li><b>getChoreDetails</b> - Get details of a specific chore (requires choreId)</li>
+        <li><b>executeChore</b> - Mark a chore as completed (requires choreId)</li>
+    </ul>
+    
+    <h4>Tasks Operations:</h4>
+    <ul>
+        <li><b>getTasks</b> - Get all tasks</li>
+        <li><b>completeTask</b> - Mark a task as completed (requires taskId)</li>
+        <li><b>undoTask</b> - Undo a task completion (requires taskId)</li>
+        <li><b>addTask</b> - Create a new task (requires at least a name)</li>
+        <li><b>editTask</b> - Edit an existing task (requires id)</li>
+        <li><b>deleteTask</b> - Delete a task (requires id)</li>
+    </ul>
+    
+    <h4>Example Usage:</h4>
+    <p>To execute a chore:</p>
+    <pre>
+    msg.payload = {
+        choreId: 1,
+        data: {
+            tracked_time: "2023-05-15 14:00:00"
+        }
+    };
+    return msg;
+    </pre>
+    
+    <p>To add a new task:</p>
+    <pre>
+    msg.payload = {
+        name: "Clean garage",
+        category_id: 1,
+        due_date: "2023-05-30"
+    };
+    msg.operation = "addTask";
+    return msg;
+    </pre>
+</script>

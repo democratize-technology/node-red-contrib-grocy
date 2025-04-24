@@ -1,0 +1,345 @@
+[
+    {
+        "id": "d7f2187d.f17ca5",
+        "type": "tab",
+        "label": "Grocy API Advanced Example",
+        "disabled": false,
+        "info": "Example flow showing how to use the general-purpose Grocy API node for advanced operations"
+    },
+    {
+        "id": "1e1c3a5.28a0b91",
+        "type": "inject",
+        "z": "d7f2187d.f17ca5",
+        "name": "Get System Info",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "endpoint",
+                "v": "system/info",
+                "vt": "str"
+            },
+            {
+                "p": "method",
+                "v": "GET",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 120,
+        "wires": [
+            [
+                "2c1d80c.5b69a1"
+            ]
+        ]
+    },
+    {
+        "id": "2c1d80c.5b69a1",
+        "type": "grocy-api",
+        "z": "d7f2187d.f17ca5",
+        "name": "System Info API",
+        "server": "3a51942a.3cb3ac",
+        "x": 350,
+        "y": 120,
+        "wires": [
+            [
+                "3e4fc4cb.dd3391"
+            ]
+        ]
+    },
+    {
+        "id": "3e4fc4cb.dd3391",
+        "type": "debug",
+        "z": "d7f2187d.f17ca5",
+        "name": "System Info",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "2e1c3a5.28a0b92",
+        "type": "inject",
+        "z": "d7f2187d.f17ca5",
+        "name": "Get Locations",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "endpoint",
+                "v": "objects/locations",
+                "vt": "str"
+            },
+            {
+                "p": "method",
+                "v": "GET",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 180,
+        "wires": [
+            [
+                "4c1d80c.5b69a2"
+            ]
+        ]
+    },
+    {
+        "id": "4c1d80c.5b69a2",
+        "type": "grocy-api",
+        "z": "d7f2187d.f17ca5",
+        "name": "Get Locations",
+        "server": "3a51942a.3cb3ac",
+        "x": 350,
+        "y": 180,
+        "wires": [
+            [
+                "5e4fc4cb.dd3392"
+            ]
+        ]
+    },
+    {
+        "id": "5e4fc4cb.dd3392",
+        "type": "debug",
+        "z": "d7f2187d.f17ca5",
+        "name": "Locations",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "6e1c3a5.28a0b93",
+        "type": "inject",
+        "z": "d7f2187d.f17ca5",
+        "name": "Create New Location",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "endpoint",
+                "v": "objects/locations",
+                "vt": "str"
+            },
+            {
+                "p": "method",
+                "v": "POST",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"name\": \"Garden Shed\", \"description\": \"Outdoor storage area\"}",
+        "payloadType": "json",
+        "x": 180,
+        "y": 240,
+        "wires": [
+            [
+                "7c1d80c.5b69a3"
+            ]
+        ]
+    },
+    {
+        "id": "7c1d80c.5b69a3",
+        "type": "grocy-api",
+        "z": "d7f2187d.f17ca5",
+        "name": "Create Location",
+        "server": "3a51942a.3cb3ac",
+        "x": 360,
+        "y": 240,
+        "wires": [
+            [
+                "8e4fc4cb.dd3393"
+            ]
+        ]
+    },
+    {
+        "id": "8e4fc4cb.dd3393",
+        "type": "debug",
+        "z": "d7f2187d.f17ca5",
+        "name": "Creation Result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "9e1c3a5.28a0b94",
+        "type": "inject",
+        "z": "d7f2187d.f17ca5",
+        "name": "Get User Settings",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "endpoint",
+                "v": "user/settings",
+                "vt": "str"
+            },
+            {
+                "p": "method",
+                "v": "GET",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 170,
+        "y": 300,
+        "wires": [
+            [
+                "ac1d80c.5b69a4"
+            ]
+        ]
+    },
+    {
+        "id": "ac1d80c.5b69a4",
+        "type": "grocy-api",
+        "z": "d7f2187d.f17ca5",
+        "name": "User Settings",
+        "server": "3a51942a.3cb3ac",
+        "x": 350,
+        "y": 300,
+        "wires": [
+            [
+                "be4fc4cb.dd3394"
+            ]
+        ]
+    },
+    {
+        "id": "be4fc4cb.dd3394",
+        "type": "debug",
+        "z": "d7f2187d.f17ca5",
+        "name": "User Settings",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "ce1c3a5.28a0b95",
+        "type": "inject",
+        "z": "d7f2187d.f17ca5",
+        "name": "Get Product Groups",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "endpoint",
+                "v": "objects/product_groups",
+                "vt": "str"
+            },
+            {
+                "p": "method",
+                "v": "GET",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 170,
+        "y": 360,
+        "wires": [
+            [
+                "dc1d80c.5b69a5"
+            ]
+        ]
+    },
+    {
+        "id": "dc1d80c.5b69a5",
+        "type": "grocy-api",
+        "z": "d7f2187d.f17ca5",
+        "name": "Product Groups",
+        "server": "3a51942a.3cb3ac",
+        "x": 360,
+        "y": 360,
+        "wires": [
+            [
+                "ee4fc4cb.dd3395"
+            ]
+        ]
+    },
+    {
+        "id": "ee4fc4cb.dd3395",
+        "type": "debug",
+        "z": "d7f2187d.f17ca5",
+        "name": "Product Groups",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "3a51942a.3cb3ac",
+        "type": "grocy-config",
+        "name": "My Grocy",
+        "apiUrl": "https://your-grocy-instance.com"
+    }
+]

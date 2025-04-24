@@ -1,0 +1,186 @@
+[
+    {
+        "id": "b7f2187d.f17ca3",
+        "type": "tab",
+        "label": "Grocy Batteries Example",
+        "disabled": false,
+        "info": "Example flow showing how to work with batteries using Grocy nodes"
+    },
+    {
+        "id": "1e1c3a5.28a0b71",
+        "type": "inject",
+        "z": "b7f2187d.f17ca3",
+        "name": "Get All Batteries",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{}",
+        "payloadType": "json",
+        "x": 170,
+        "y": 120,
+        "wires": [
+            [
+                "2c1d80c.5b6981"
+            ]
+        ]
+    },
+    {
+        "id": "2c1d80c.5b6981",
+        "type": "grocy-batteries",
+        "z": "b7f2187d.f17ca3",
+        "name": "List All Batteries",
+        "server": "3a51942a.3cb3ac",
+        "operation": "getBatteries",
+        "x": 360,
+        "y": 120,
+        "wires": [
+            [
+                "3e4fc4cb.dd3371"
+            ]
+        ]
+    },
+    {
+        "id": "3e4fc4cb.dd3371",
+        "type": "debug",
+        "z": "b7f2187d.f17ca3",
+        "name": "Batteries List",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "2e1c3a5.28a0b72",
+        "type": "inject",
+        "z": "b7f2187d.f17ca3",
+        "name": "Track Battery Charge",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"battery_id\": 1, \"tracked_time\": \"now\"}",
+        "payloadType": "json",
+        "x": 180,
+        "y": 180,
+        "wires": [
+            [
+                "4c1d80c.5b6982"
+            ]
+        ]
+    },
+    {
+        "id": "4c1d80c.5b6982",
+        "type": "grocy-batteries",
+        "z": "b7f2187d.f17ca3",
+        "name": "Track Charge Cycle",
+        "server": "3a51942a.3cb3ac",
+        "operation": "trackChargeCycle",
+        "x": 370,
+        "y": 180,
+        "wires": [
+            [
+                "5e4fc4cb.dd3372"
+            ]
+        ]
+    },
+    {
+        "id": "5e4fc4cb.dd3372",
+        "type": "debug",
+        "z": "b7f2187d.f17ca3",
+        "name": "Charge Result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "6e1c3a5.28a0b73",
+        "type": "inject",
+        "z": "b7f2187d.f17ca3",
+        "name": "Get Battery Details",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"battery_id\": 1}",
+        "payloadType": "json",
+        "x": 180,
+        "y": 240,
+        "wires": [
+            [
+                "7c1d80c.5b6983"
+            ]
+        ]
+    },
+    {
+        "id": "7c1d80c.5b6983",
+        "type": "grocy-batteries",
+        "z": "b7f2187d.f17ca3",
+        "name": "Get Battery Details",
+        "server": "3a51942a.3cb3ac",
+        "operation": "getBatteryDetails",
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "8e4fc4cb.dd3373"
+            ]
+        ]
+    },
+    {
+        "id": "8e4fc4cb.dd3373",
+        "type": "debug",
+        "z": "b7f2187d.f17ca3",
+        "name": "Battery Details",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "3a51942a.3cb3ac",
+        "type": "grocy-config",
+        "name": "My Grocy",
+        "apiUrl": "https://your-grocy-instance.com"
+    }
+]

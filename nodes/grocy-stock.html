@@ -1,0 +1,109 @@
+<script type="text/javascript">
+    RED.nodes.registerType('grocy-stock', {
+        category: 'Grocy',
+        color: '#73C5FF',
+        defaults: {
+            name: { value: "" },
+            server: { type: "grocy-config", required: true },
+            operation: { value: "getStock", required: true }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "grocy.svg",
+        label: function() {
+            return this.name || "Grocy Stock";
+        },
+        paletteLabel: "Grocy Stock",
+        oneditprepare: function() {
+            const node = this;
+            
+            // Stock operations
+            const operations = [
+                { value: "getStock", label: "Get Stock" },
+                { value: "getVolatileStock", label: "Get Volatile Stock" },
+                { value: "getProductDetails", label: "Get Product Details" },
+                { value: "getProductByBarcode", label: "Get Product By Barcode" },
+                { value: "addProductToStock", label: "Add Product To Stock" },
+                { value: "addProductToStockByBarcode", label: "Add Product To Stock By Barcode" },
+                { value: "consumeProduct", label: "Consume Product" },
+                { value: "consumeProductByBarcode", label: "Consume Product By Barcode" },
+                { value: "transferProduct", label: "Transfer Product" },
+                { value: "inventoryProduct", label: "Inventory Product" },
+                { value: "openProduct", label: "Open Product" }
+            ];
+            
+            // Populate operation dropdown
+            const $operationField = $('#node-input-operation');
+            operations.forEach(op => {
+                $operationField.append($('<option>').val(op.value).text(op.label));
+            });
+            
+            // Set current value
+            $operationField.val(node.operation);
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="grocy-stock">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-server"><i class="fa fa-server"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+    <div class="form-row">
+        <label for="node-input-operation"><i class="fa fa-wrench"></i> Operation</label>
+        <select id="node-input-operation"></select>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="grocy-stock">
+    <p>A node to interact with Grocy stock management.</p>
+    
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The parameters required for the stock operation</dd>
+        <dt>operation <span class="property-type">string</span></dt>
+        <dd>(Optional) Override the operation specified in the node configuration</dd>
+    </dl>
+    
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>The result of the Grocy stock operation</dd>
+    </dl>
+    
+    <h3>Details</h3>
+    <p>This node provides simplified access to Grocy's stock management functions.</p>
+    
+    <h4>Available Operations:</h4>
+    <ul>
+        <li><b>getStock</b> - Get all products currently in stock</li>
+        <li><b>getVolatileStock</b> - Get products that are due soon, overdue, expired, or missing</li>
+        <li><b>getProductDetails</b> - Get details of a specific product (requires productId)</li>
+        <li><b>getProductByBarcode</b> - Get product details by barcode (requires barcode)</li>
+        <li><b>addProductToStock</b> - Add a product to stock (requires productId and data)</li>
+        <li><b>addProductToStockByBarcode</b> - Add a product to stock by barcode (requires barcode and data)</li>
+        <li><b>consumeProduct</b> - Consume a product from stock (requires productId and data)</li>
+        <li><b>consumeProductByBarcode</b> - Consume a product from stock by barcode (requires barcode and data)</li>
+        <li><b>transferProduct</b> - Transfer a product between locations (requires productId and data)</li>
+        <li><b>inventoryProduct</b> - Set the current inventory of a product (requires productId and data)</li>
+        <li><b>openProduct</b> - Mark a product as opened (requires productId and data)</li>
+    </ul>
+    
+    <h4>Example Usage:</h4>
+    <p>To consume a product:</p>
+    <pre>
+    msg.payload = {
+        productId: 1,
+        data: {
+            amount: 1,
+            transaction_type: "consume"
+        }
+    };
+    return msg;
+    </pre>
+</script>
