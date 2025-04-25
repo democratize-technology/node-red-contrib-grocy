@@ -11,13 +11,13 @@
         inputs: 1,
         outputs: 1,
         icon: "grocy.svg",
-        label: function() {
+        label: function () {
             return this.name || this.operation || "Grocy API";
         },
-        paletteLabel: "Grocy API",
-        oneditprepare: function() {
+        paletteLabel: "API",
+        oneditprepare: function () {
             const node = this;
-            
+
             // Lists of operations by category
             const operations = {
                 system: [
@@ -101,7 +101,7 @@
                     { value: "getCalendarSharingLink", label: "Get Calendar Sharing Link" }
                 ]
             };
-            
+
             // Entity types for entity operations
             const entityTypes = [
                 { value: "products", label: "Products" },
@@ -115,46 +115,46 @@
                 { value: "chores", label: "Chores" },
                 { value: "batteries", label: "Batteries" },
             ];
-            
+
             // Populate operation dropdown
             const $operationField = $('#node-input-operation');
-            
+
             // Add category headers and options
             Object.keys(operations).forEach(category => {
                 const $optgroup = $('<optgroup>').attr('label', category.charAt(0).toUpperCase() + category.slice(1));
-                
+
                 operations[category].forEach(op => {
                     $optgroup.append($('<option>').val(op.value).text(op.label));
                 });
-                
+
                 $operationField.append($optgroup);
             });
-            
+
             // Populate entity type dropdown
             const $entityTypeField = $('#node-input-entityType');
             entityTypes.forEach(entity => {
                 $entityTypeField.append($('<option>').val(entity.value).text(entity.label));
             });
-            
+
             // Set current values
             $operationField.val(node.operation);
             $entityTypeField.val(node.entityType);
-            
+
             // Show/hide entity type field based on operation selection
             function updateEntityTypeVisibility() {
                 const operation = $operationField.val();
                 const isEntityOperation = ['getObjects', 'addObject', 'getObject', 'editObject', 'deleteObject'].includes(operation);
-                
+
                 if (isEntityOperation) {
                     $('#entity-type-row').show();
                 } else {
                     $('#entity-type-row').hide();
                 }
             }
-            
+
             // Set initial visibility
             updateEntityTypeVisibility();
-            
+
             // Update visibility when operation changes
             $operationField.on('change', updateEntityTypeVisibility);
         }
@@ -182,7 +182,7 @@
 
 <script type="text/html" data-help-name="grocy-api">
     <p>A node to interact with the Grocy API.</p>
-    
+
     <h3>Inputs</h3>
     <dl class="message-properties">
         <dt>payload <span class="property-type">object</span></dt>
@@ -192,16 +192,16 @@
         <dt>options <span class="property-type">object</span></dt>
         <dd>(Optional) Additional options for operations that support them</dd>
     </dl>
-    
+
     <h3>Outputs</h3>
     <dl class="message-properties">
         <dt>payload <span class="property-type">object</span></dt>
         <dd>The result of the Grocy API call</dd>
     </dl>
-    
+
     <h3>Details</h3>
     <p>This node allows you to interact with the Grocy API. Select an operation and provide the necessary parameters in the <code>msg.payload</code>.</p>
-    
+
     <p>For example, to add a product to stock:</p>
     <pre>
     msg.payload = {
@@ -214,6 +214,6 @@
     };
     return msg;
     </pre>
-    
+
     <p>For more details on available operations and required parameters, please refer to the Grocy API documentation.</p>
 </script>

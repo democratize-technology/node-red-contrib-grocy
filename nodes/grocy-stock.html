@@ -10,13 +10,13 @@
         inputs: 1,
         outputs: 1,
         icon: "grocy.svg",
-        label: function() {
+        label: function () {
             return this.name || "Grocy Stock";
         },
-        paletteLabel: "Grocy Stock",
-        oneditprepare: function() {
+        paletteLabel: "Stock",
+        oneditprepare: function () {
             const node = this;
-            
+
             // Stock operations
             const operations = [
                 { value: "getStock", label: "Get Stock" },
@@ -31,13 +31,13 @@
                 { value: "inventoryProduct", label: "Inventory Product" },
                 { value: "openProduct", label: "Open Product" }
             ];
-            
+
             // Populate operation dropdown
             const $operationField = $('#node-input-operation');
             operations.forEach(op => {
                 $operationField.append($('<option>').val(op.value).text(op.label));
             });
-            
+
             // Set current value
             $operationField.val(node.operation);
         }
@@ -61,7 +61,7 @@
 
 <script type="text/html" data-help-name="grocy-stock">
     <p>A node to interact with Grocy stock management.</p>
-    
+
     <h3>Inputs</h3>
     <dl class="message-properties">
         <dt>payload <span class="property-type">object</span></dt>
@@ -69,16 +69,16 @@
         <dt>operation <span class="property-type">string</span></dt>
         <dd>(Optional) Override the operation specified in the node configuration</dd>
     </dl>
-    
+
     <h3>Outputs</h3>
     <dl class="message-properties">
         <dt>payload <span class="property-type">object</span></dt>
         <dd>The result of the Grocy stock operation</dd>
     </dl>
-    
+
     <h3>Details</h3>
     <p>This node provides simplified access to Grocy's stock management functions.</p>
-    
+
     <h4>Available Operations:</h4>
     <ul>
         <li><b>getStock</b> - Get all products currently in stock</li>
@@ -93,7 +93,7 @@
         <li><b>inventoryProduct</b> - Set the current inventory of a product (requires productId and data)</li>
         <li><b>openProduct</b> - Mark a product as opened (requires productId and data)</li>
     </ul>
-    
+
     <h4>Example Usage:</h4>
     <p>To consume a product:</p>
     <pre>

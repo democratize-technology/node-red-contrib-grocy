@@ -10,13 +10,13 @@
         inputs: 1,
         outputs: 1,
         icon: "grocy.svg",
-        label: function() {
+        label: function () {
             return this.name || "Grocy Shopping List";
         },
-        paletteLabel: "Grocy Shopping List",
-        oneditprepare: function() {
+        paletteLabel: "Shopping List",
+        oneditprepare: function () {
             const node = this;
-            
+
             // Shopping list operations
             const operations = [
                 { value: "getShoppingLists", label: "Get Shopping Lists" },
@@ -31,13 +31,13 @@
                 { value: "updateShoppingList", label: "Update Shopping List" },
                 { value: "deleteShoppingList", label: "Delete Shopping List" }
             ];
-            
+
             // Populate operation dropdown
             const $operationField = $('#node-input-operation');
             operations.forEach(op => {
                 $operationField.append($('<option>').val(op.value).text(op.label));
             });
-            
+
             // Set current value
             $operationField.val(node.operation);
         }
@@ -61,7 +61,7 @@
 
 <script type="text/html" data-help-name="grocy-shopping-list">
     <p>A node to interact with Grocy shopping lists.</p>
-    
+
     <h3>Inputs</h3>
     <dl class="message-properties">
         <dt>payload <span class="property-type">object</span></dt>
@@ -69,16 +69,16 @@
         <dt>operation <span class="property-type">string</span></dt>
         <dd>(Optional) Override the operation specified in the node configuration</dd>
     </dl>
-    
+
     <h3>Outputs</h3>
     <dl class="message-properties">
         <dt>payload <span class="property-type">object</span></dt>
         <dd>The result of the Grocy shopping list operation</dd>
     </dl>
-    
+
     <h3>Details</h3>
     <p>This node provides access to Grocy's shopping list functions.</p>
-    
+
     <h4>Available Operations:</h4>
     <ul>
         <li><b>getShoppingLists</b> - Get all shopping lists</li>
@@ -93,7 +93,7 @@
         <li><b>updateShoppingList</b> - Update an existing shopping list</li>
         <li><b>deleteShoppingList</b> - Delete a shopping list</li>
     </ul>
-    
+
     <h4>Example Usage:</h4>
     <p>To get all shopping list items for a specific list:</p>
     <pre>
@@ -102,7 +102,7 @@
     };
     return msg;
     </pre>
-    
+
     <p>To add a product to a shopping list:</p>
     <pre>
     msg.payload = {

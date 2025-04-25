@@ -10,13 +10,13 @@
         inputs: 1,
         outputs: 1,
         icon: "grocy.svg",
-        label: function() {
+        label: function () {
             return this.name || "Grocy Batteries";
         },
-        paletteLabel: "Grocy Batteries",
-        oneditprepare: function() {
+        paletteLabel: "Batteries",
+        oneditprepare: function () {
             const node = this;
-            
+
             // Battery operations
             const operations = [
                 { value: "getBatteries", label: "Get Batteries" },
@@ -26,13 +26,13 @@
                 { value: "editBattery", label: "Edit Battery" },
                 { value: "deleteBattery", label: "Delete Battery" }
             ];
-            
+
             // Populate operation dropdown
             const $operationField = $('#node-input-operation');
             operations.forEach(op => {
                 $operationField.append($('<option>').val(op.value).text(op.label));
             });
-            
+
             // Set current value
             $operationField.val(node.operation);
         }
@@ -56,7 +56,7 @@
 
 <script type="text/html" data-help-name="grocy-batteries">
     <p>A node to interact with Grocy batteries management.</p>
-    
+
     <h3>Inputs</h3>
     <dl class="message-properties">
         <dt>payload <span class="property-type">object</span></dt>
@@ -66,16 +66,16 @@
         <dt>options <span class="property-type">object</span></dt>
         <dd>(Optional) Additional options for certain operations like filters and sorting</dd>
     </dl>
-    
+
     <h3>Outputs</h3>
     <dl class="message-properties">
         <dt>payload <span class="property-type">object</span></dt>
         <dd>The result of the Grocy battery operation</dd>
     </dl>
-    
+
     <h3>Details</h3>
     <p>This node provides access to Grocy's battery management functions, allowing you to track battery charging cycles.</p>
-    
+
     <h4>Available Operations:</h4>
     <ul>
         <li><b>getBatteries</b> - Get all batteries</li>
@@ -85,7 +85,7 @@
         <li><b>editBattery</b> - Edit an existing battery (requires id)</li>
         <li><b>deleteBattery</b> - Delete a battery (requires id)</li>
     </ul>
-    
+
     <h4>Example Usage:</h4>
     <p>To log a battery charge:</p>
     <pre>
@@ -97,7 +97,7 @@
     };
     return msg;
     </pre>
-    
+
     <p>To add a new battery:</p>
     <pre>
     msg.payload = {
