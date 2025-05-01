@@ -1,4 +1,4 @@
-const GrocyAPI = require('node-grocy');
+const GrocyAPI = require('node-grocy').default;
 
 module.exports = function (RED) {
   function GrocyChoresNode(config) {
