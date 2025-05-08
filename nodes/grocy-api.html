@@ -102,19 +102,57 @@
                 ]
             };
 
-            // Entity types for entity operations
-            const entityTypes = [
-                { value: "products", label: "Products" },
-                { value: "locations", label: "Locations" },
-                { value: "shopping_list", label: "Shopping Lists" },
-                { value: "shopping_list_items", label: "Shopping List Items" },
-                { value: "recipes", label: "Recipes" },
-                { value: "recipes_pos", label: "Recipe Positions" },
-                { value: "tasks", label: "Tasks" },
-                { value: "task_categories", label: "Task Categories" },
-                { value: "chores", label: "Chores" },
-                { value: "batteries", label: "Batteries" },
-            ];
+            // Entity types for entity operations grouped by category
+            const entityTypes = {
+                inventory: [
+                    { value: "products", label: "Products" },
+                    { value: "product_groups", label: "Product Groups" },
+                    { value: "product_barcodes", label: "Product Barcodes" },
+                    { value: "product_barcodes_view", label: "Product Barcodes View" },
+                    { value: "products_average_price", label: "Products Average Price" },
+                    { value: "products_last_purchased", label: "Products Last Purchased" },
+                    { value: "locations", label: "Locations" },
+                    { value: "shopping_locations", label: "Shopping Locations" },
+                    { value: "quantity_units", label: "Quantity Units" },
+                    { value: "quantity_unit_conversions", label: "Quantity Unit Conversions" },
+                    { value: "quantity_unit_conversions_resolved", label: "Quantity Unit Conversions Resolved" }
+                ],
+                stock: [
+                    { value: "stock", label: "Stock" },
+                    { value: "stock_current_locations", label: "Stock Current Locations" },
+                    { value: "stock_log", label: "Stock Log" }
+                ],
+                shopping: [
+                    { value: "shopping_list", label: "Shopping List" },
+                    { value: "shopping_lists", label: "Shopping Lists" }
+                ],
+                recipes: [
+                    { value: "recipes", label: "Recipes" },
+                    { value: "recipes_pos", label: "Recipe Positions" },
+                    { value: "recipes_pos_resolved", label: "Recipe Positions Resolved" },
+                    { value: "recipes_nestings", label: "Recipe Nestings" },
+                    { value: "meal_plan", label: "Meal Plan" },
+                    { value: "meal_plan_sections", label: "Meal Plan Sections" }
+                ],
+                tasks: [
+                    { value: "tasks", label: "Tasks" },
+                    { value: "task_categories", label: "Task Categories" }
+                ],
+                chores: [
+                    { value: "chores", label: "Chores" },
+                    { value: "chores_log", label: "Chores Log" },
+                    { value: "equipment", label: "Equipment" }
+                ],
+                batteries: [
+                    { value: "batteries", label: "Batteries" },
+                    { value: "battery_charge_cycles", label: "Battery Charge Cycles" }
+                ],
+                system: [
+                    { value: "userentities", label: "User Entities" },
+                    { value: "userfields", label: "User Fields" },
+                    { value: "userobjects", label: "User Objects" }
+                ]
+            };
 
             // Populate operation dropdown
             const $operationField = $('#node-input-operation');
@@ -130,10 +168,18 @@
                 $operationField.append($optgroup);
             });
 
-            // Populate entity type dropdown
+            // Populate entity type dropdown with categories
             const $entityTypeField = $('#node-input-entityType');
-            entityTypes.forEach(entity => {
-                $entityTypeField.append($('<option>').val(entity.value).text(entity.label));
+
+            // Add all options grouped by category
+            Object.keys(entityTypes).forEach(category => {
+                const $optgroup = $('<optgroup>').attr('label', category.charAt(0).toUpperCase() + category.slice(1));
+
+                entityTypes[category].forEach(entity => {
+                    $optgroup.append($('<option>').val(entity.value).text(entity.label));
+                });
+
+                $entityTypeField.append($optgroup);
             });
 
             // Set current values

@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-grocy",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Node-RED nodes to interact with the Grocy API",
   "main": "index.js",
   "scripts": {
