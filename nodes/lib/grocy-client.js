@@ -1,14 +1,56 @@
+const Validators = require('./validators');
+const GrocyAPIWrapper = require('./grocy-api-wrapper');
+const { createLogger, PerformanceMonitor } = require('./logging');
+
 /**
  * Grocy client wrapper for consistent connection management
+ * 
+ * Security Note: This client supports flexible SSL configuration
+ * for both cloud and self-hosted deployments.
  */
 class GrocyClient {
-  constructor(serverConfig) {
+  constructor(serverConfig, options = {}) {
     if (!serverConfig) {
       throw new Error('Server configuration is required');
     }
     
     if (!serverConfig.apiUrl || !serverConfig.credentials?.apiKey) {
       throw new Error('Missing required configuration');
+    }
+    
+    // Extract SSL configuration with secure defaults
+    this.sslOptions = {
+      verifySsl: serverConfig.verifySsl !== false, // Default true
+      allowSelfSigned: serverConfig.allowSelfSigned === true, // Default false  
+      timeout: serverConfig.timeout || 30000 // Default 30 seconds
+    };
+    
+    // Validate configuration based on SSL settings
+    const isDevelopment = process.env.NODE_ENV === 'development' || 
+                         process.env.NODE_ENV === 'test' ||
+                         options.isDevelopment === true;
+    
+    try {
+      // Update validation to respect SSL settings
+      const validationOptions = { 
+        isDevelopment,
+        allowInsecure: !this.sslOptions.verifySsl // Allow HTTP if SSL verification is disabled
+      };
+      Validators.validateConfig(serverConfig, validationOptions);
+    } catch (validationError) {
+      // Provide helpful error messages based on context
+      let enhancedMessage = `Configuration Error: ${validationError.message}\n`;
+      
+      if (validationError.message.includes('HTTPS')) {
+        enhancedMessage += 'For self-hosted instances:\n' +
+                          '1. Use HTTPS with proper certificates (recommended)\n' +
+                          '2. Or disable "Verify SSL" in configuration (trusted networks only)\n' +
+                          '3. Or use HTTP for local networks (192.168.x.x, 10.x.x.x)';
+      }
+      
+      const enhancedError = new Error(enhancedMessage);
+      enhancedError.originalError = validationError;
+      throw enhancedError;
     }
     
     this.apiUrl = serverConfig.apiUrl;
@@ -23,24 +65,42 @@ class GrocyClient {
       lastSuccessfulConnection: null
     };
     
-    // Initialize API synchronously for tests, asynchronously for production
+    // Initialize logging if enabled
+    this.loggingConfig = options.logging || serverConfig.logging || {};
+    this.logger = this.loggingConfig.enabled !== false ? createLogger({
+      id: serverConfig.id || 'grocy-client',
+      type: 'grocy-client',
+      ...this.loggingConfig
+    }) : null;
+    
+    // Initialize performance monitor
+    this.performanceMonitor = this.loggingConfig.enablePerformanceTracking !== false
+      ? new PerformanceMonitor(serverConfig.id || 'grocy-client')
+      : null;
+    
+    // Initialize API with SSL options
     this._initializeAPI();
   }
 
   /**
-   * Initialize the Grocy API with proper fallback handling
+   * Initialize the Grocy API with SSL support
    */
   _initializeAPI() {
     try {
-      // Try synchronous require first (for tests/mock)
-      const GrocyAPI = require('node-grocy');
-      this.api = new GrocyAPI(this.apiUrl, this.apiKey);
+      // Always use our wrapper that supports SSL options and logging
+      this.api = new GrocyAPIWrapper(this.apiUrl, this.apiKey, this.sslOptions, this.loggingConfig);
       this._initialized = true;
-    } catch (requireError) {
-      // Check if it's specifically a dynamic import callback error in Jest/VM
-      if (requireError.message && requireError.message.includes('dynamic import callback') && 
-          (process.env.NODE_ENV === 'test' || typeof jest !== 'undefined')) {
-        // In Jest environment, use the mock directly
+      
+      if (this.logger) {
+        this.logger.info('Grocy API initialized', {
+          apiUrl: this.apiUrl,
+          sslVerification: this.sslOptions.verifySsl,
+          allowSelfSigned: this.sslOptions.allowSelfSigned
+        });
+      }
+    } catch (error) {
+      // For test environments, check for mock
+      if (process.env.NODE_ENV === 'test' || typeof jest !== 'undefined') {
         try {
           const MockGrocyAPI = require('../../test/mocks/node-grocy-mock.js');
           this.api = new MockGrocyAPI(this.apiUrl, this.apiKey);
@@ -54,10 +114,8 @@ class GrocyClient {
         }
       }
       
-      // For production environments, try dynamic import
-      if (!this._initPromise) {
-        this._initPromise = this._asyncInit();
-      }
+      // Re-throw error in production
+      throw error;
     }
   }
 
@@ -81,41 +139,15 @@ class GrocyClient {
   }
 
   /**
-   * Async initialization fallback for production environments
+   * No longer needed - we use GrocyAPIWrapper directly
    */
   async _asyncInit() {
-    try {
-      let GrocyAPI;
-      
-      // Try different import methods
-      try {
-        // First try default export
-        const module = await import('node-grocy');
-        GrocyAPI = module.default || module;
-      } catch (importError) {
-        // Fallback to named export or direct require
-        try {
-          const module = await import('node-grocy');
-          GrocyAPI = module.GrocyAPI || module.default || module;
-        } catch (fallbackError) {
-          throw new Error('Unable to load node-grocy module using any import method');
-        }
-      }
-      
-      if (typeof GrocyAPI !== 'function') {
-        throw new Error('node-grocy module did not export a constructor function');
-      }
-      
-      this.api = new GrocyAPI(this.apiUrl, this.apiKey);
+    // This method is no longer used but kept for backward compatibility
+    if (!this.api) {
+      this.api = new GrocyAPIWrapper(this.apiUrl, this.apiKey, this.sslOptions);
       this._initialized = true;
-      return this.api;
-    } catch (error) {
-      // In case of failure, provide a mock for graceful degradation
-      console.warn('Failed to load node-grocy module, using mock API:', error.message);
-      this.api = this._createMinimalMock();
-      this._initialized = true;
-      return this.api;
     }
+    return this.api;
   }
 
   /**
@@ -157,6 +189,10 @@ class GrocyClient {
   async testConnection() {
     this._healthStatus.lastConnectionAttempt = new Date().toISOString();
     
+    // Track performance if monitor available
+    const perfId = this.performanceMonitor ? 
+      this.performanceMonitor.startOperation('testConnection') : null;
+    
     try {
       const api = await this.waitForReady();
       const systemInfo = await api.getSystemInfo();
@@ -166,6 +202,19 @@ class GrocyClient {
       this._healthStatus.consecutiveFailures = 0;
       this._healthStatus.lastSuccessfulConnection = new Date().toISOString();
       
+      // Log success
+      if (this.logger) {
+        this.logger.info('Connection test successful', {
+          grocyVersion: systemInfo.grocy_version,
+          phpVersion: systemInfo.php_version
+        });
+      }
+      
+      // End performance tracking
+      if (perfId && this.performanceMonitor) {
+        this.performanceMonitor.endOperation(perfId, true, { systemInfo });
+      }
+      
       return {
         success: true,
         systemInfo: systemInfo
@@ -174,6 +223,19 @@ class GrocyClient {
       // Update health status on failure
       this._healthStatus.isHealthy = false;
       this._healthStatus.consecutiveFailures += 1;
+      
+      // Log failure
+      if (this.logger) {
+        this.logger.error('Connection test failed', {
+          error: error.message,
+          consecutiveFailures: this._healthStatus.consecutiveFailures
+        });
+      }
+      
+      // End performance tracking
+      if (perfId && this.performanceMonitor) {
+        this.performanceMonitor.endOperation(perfId, false, { error: error.message });
+      }
       
       return {
         success: false,
@@ -189,7 +251,8 @@ class GrocyClient {
   getConnectionInfo() {
     return {
       apiUrl: this.apiUrl,
-      hasApiKey: !!this.apiKey
+      hasApiKey: !!this.apiKey,
+      sslOptions: this.sslOptions
     };
   }
 
