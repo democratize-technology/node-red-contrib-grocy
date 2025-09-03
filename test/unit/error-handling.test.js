@@ -351,13 +351,13 @@ describe('Error Handling System', () => {
       test('should enforce HTTPS requirement', () => {
         expect(() => {
           Validators.validateUrl('http://example.com', { requireHttps: true });
-        }).toThrow('URL must use HTTPS protocol');
+        }).toThrow('⚠️ SECURITY WARNING: HTTPS is required for production use');
       });
 
       test('should handle localhost restrictions', () => {
         expect(() => {
-          Validators.validateUrl('http://localhost:3000', { allowLocalhost: false });
-        }).toThrow('Localhost URLs are not allowed');
+          Validators.validateUrl('https://localhost:3000', { allowLocalhost: false });
+        }).toThrow('Localhost/private network URLs are not allowed in this context');
       });
     });
 

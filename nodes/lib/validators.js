@@ -289,12 +289,12 @@ class Validators {
     }
 
     // SECURITY: Check for development/localhost scenarios
-    const isLocalDev = allowLocalhost && 
-      (parsedUrl.hostname === 'localhost' || 
+    const isLocalHostname = (parsedUrl.hostname === 'localhost' || 
        parsedUrl.hostname === '127.0.0.1' ||
        parsedUrl.hostname.startsWith('192.168.') ||
        parsedUrl.hostname.startsWith('10.') ||
        parsedUrl.hostname.startsWith('172.'));
+    const isLocalDev = allowLocalhost && isLocalHostname;
 
     // SECURITY: Enforce HTTPS by default for production
     if (parsedUrl.protocol === 'http:') {
@@ -323,7 +323,7 @@ class Validators {
     }
 
     // Hostname validation for non-localhost restrictions
-    if (!allowLocalhost && isLocalDev) {
+    if (!allowLocalhost && isLocalHostname) {
       throw ErrorHandler.validationError('Localhost/private network URLs are not allowed in this context');
     }
   }

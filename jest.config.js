@@ -9,7 +9,7 @@ module.exports = {
   ],
   
   // Coverage configuration
-  collectCoverage: true,
+  collectCoverage: process.env.NODE_ENV !== 'ci',
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json'],
   collectCoverageFrom: [
@@ -36,8 +36,8 @@ module.exports = {
   // Module paths and aliases
   moduleDirectories: ['node_modules', '<rootDir>/nodes'],
   
-  // Test timeout (increased for Node-RED tests)
-  testTimeout: 15000,
+  // Test timeout (reduced for CI)
+  testTimeout: process.env.NODE_ENV === 'ci' ? 10000 : 30000,
   
   // Clear mocks between tests
   clearMocks: true,
