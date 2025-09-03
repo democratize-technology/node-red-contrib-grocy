@@ -1,273 +1,91 @@
-const GrocyAPI = require('node-grocy').default;
+const BaseGrocyNode = require('./lib/base-node');
+const GrocyClient = require('./lib/grocy-client');
+const OperationRouter = require('./lib/operation-router');
+const Validators = require('./lib/validators');
+const ErrorHandler = require('./lib/error-handler');
 
 module.exports = function (RED) {
+  /**
+   * Grocy API Node using modular architecture
+   */
   function GrocyApiNode(config) {
+    const baseNode = new BaseGrocyNode(RED, this, config);
+    
+    // Copy base node properties and methods to this instance
+    Object.assign(this, baseNode);
+    
+    // Initialize Node-RED node
     RED.nodes.createNode(this, config);
-    const node = this;
-
-    // Get configuration node
-    this.server = RED.nodes.getNode(config.server);
+    
+    // Set node-specific properties
     this.operation = config.operation;
     this.entityType = config.entityType;
-
-    if (!this.server) {
-      node.status({ fill: 'red', shape: 'ring', text: 'Missing server config' });
-      return;
+    
+    // Initialize base functionality
+    this.initialize();
+    
+    // Initialize router after base setup
+    if (this.client) {
+      this.router = new OperationRouter(this.client);
     }
+    // Override processMessage method
+    this.processMessage = async (msg) => {
+      // Validate inputs
+      const operation = this.getOperation(msg);
+      const payload = this.getPayload(msg);
+      const options = this.getOptions(msg);
+      const entityType = this.getEntityType(msg);
 
-    node.on('input', async function (msg, send, done) {
-      // Set initial node status
-      node.status({ fill: 'blue', shape: 'dot', text: 'requesting...' });
+      // Validate operation
+      Validators.validateOperation(operation);
 
-      // Operation and parameters for the API call
-      const operation = msg.operation || node.operation;
-      const payload = msg.payload || {};
-      const options = msg.options || {};
-
-      if (!operation) {
-        node.status({ fill: 'red', shape: 'ring', text: 'no operation specified' });
-        const error = new Error('No operation specified');
-        if (done) {
-          done(error);
-        } else {
-          node.error(error, msg);
-        }
-        return;
+      if (!this.router) {
+        throw ErrorHandler.operationError('Router not initialized - client unavailable');
       }
 
+      if (!this.router.isSupported(operation)) {
+        throw ErrorHandler.operationError(operation);
+      }
+
+      // Debug logging
+      this.debug('Executing operation', {
+        operation,
+        category: this.router.getOperationCategory(operation),
+        entityType,
+        hasPayload: !!Object.keys(payload).length,
+        hasOptions: !!Object.keys(options).length
+      });
+
+      // Execute operation through router
       try {
-        // Initialize Grocy client
-        const grocy = new GrocyAPI(node.server.apiUrl, node.server.credentials.apiKey);
-        let result;
+        const result = await this.router.execute(operation, payload, options, entityType);
+        
+        this.debug('Operation completed successfully', {
+          operation,
+          resultType: typeof result,
+          isArray: Array.isArray(result)
+        });
 
-        // Execute the Grocy API operation
-        switch (operation) {
-          // System operations
-          case 'getSystemInfo':
-            result = await grocy.getSystemInfo();
-            break;
-          case 'getDbChangedTime':
-            result = await grocy.getDbChangedTime();
-            break;
-          case 'getConfig':
-            result = await grocy.getConfig();
-            break;
-          case 'getTime':
-            result = await grocy.getTime(payload.offset);
-            break;
-
-          // Stock operations
-          case 'getStock':
-            result = await grocy.getStock();
-            break;
-          case 'getStockEntry':
-            result = await grocy.getStockEntry(payload.entryId);
-            break;
-          case 'editStockEntry':
-            result = await grocy.editStockEntry(payload.entryId, payload.data);
-            break;
-          case 'getVolatileStock':
-            result = await grocy.getVolatileStock(payload.dueSoonDays);
-            break;
-          case 'getProductDetails':
-            result = await grocy.getProductDetails(payload.productId);
-            break;
-          case 'getProductByBarcode':
-            result = await grocy.getProductByBarcode(payload.barcode);
-            break;
-          case 'addProductToStock':
-            result = await grocy.addProductToStock(payload.productId, payload.data);
-            break;
-          case 'addProductToStockByBarcode':
-            result = await grocy.addProductToStockByBarcode(payload.barcode, payload.data);
-            break;
-          case 'consumeProduct':
-            result = await grocy.consumeProduct(payload.productId, payload.data);
-            break;
-          case 'consumeProductByBarcode':
-            result = await grocy.consumeProductByBarcode(payload.barcode, payload.data);
-            break;
-          case 'transferProduct':
-            result = await grocy.transferProduct(payload.productId, payload.data);
-            break;
-          case 'inventoryProduct':
-            result = await grocy.inventoryProduct(payload.productId, payload.data);
-            break;
-          case 'openProduct':
-            result = await grocy.openProduct(payload.productId, payload.data);
-            break;
-
-          // Shopping list operations
-          case 'addMissingProductsToShoppingList':
-            result = await grocy.addMissingProductsToShoppingList(payload);
-            break;
-          case 'addOverdueProductsToShoppingList':
-            result = await grocy.addOverdueProductsToShoppingList(payload);
-            break;
-          case 'addExpiredProductsToShoppingList':
-            result = await grocy.addExpiredProductsToShoppingList(payload);
-            break;
-          case 'clearShoppingList':
-            result = await grocy.clearShoppingList(payload);
-            break;
-          case 'addProductToShoppingList':
-            result = await grocy.addProductToShoppingList(payload);
-            break;
-          case 'removeProductFromShoppingList':
-            result = await grocy.removeProductFromShoppingList(payload);
-            break;
-
-          // Generic entity operations
-          case 'getObjects':
-            result = await grocy.getObjects(payload.entity || node.entityType, options);
-            break;
-          case 'addObject':
-            result = await grocy.addObject(payload.entity || node.entityType, payload.data);
-            break;
-          case 'getObject':
-            result = await grocy.getObject(payload.entity || node.entityType, payload.objectId);
-            break;
-          case 'editObject':
-            result = await grocy.editObject(payload.entity || node.entityType, payload.objectId, payload.data);
-            break;
-          case 'deleteObject':
-            result = await grocy.deleteObject(payload.entity || node.entityType, payload.objectId);
-            break;
-
-          // Userfields operations
-          case 'getUserfields':
-            result = await grocy.getUserfields(payload.entity, payload.objectId);
-            break;
-          case 'setUserfields':
-            result = await grocy.setUserfields(payload.entity, payload.objectId, payload.data);
-            break;
-
-          // File operations
-          case 'getFile':
-            result = await grocy.getFile(payload.group, payload.fileName, payload.options);
-            break;
-          case 'uploadFile':
-            result = await grocy.uploadFile(payload.group, payload.fileName, payload.fileData);
-            break;
-          case 'deleteFile':
-            result = await grocy.deleteFile(payload.group, payload.fileName);
-            break;
-
-          // User operations
-          case 'getUsers':
-            result = await grocy.getUsers(options);
-            break;
-          case 'createUser':
-            result = await grocy.createUser(payload);
-            break;
-          case 'editUser':
-            result = await grocy.editUser(payload.userId, payload.data);
-            break;
-          case 'deleteUser':
-            result = await grocy.deleteUser(payload.userId);
-            break;
-          case 'getCurrentUser':
-            result = await grocy.getCurrentUser();
-            break;
-          case 'getUserSettings':
-            result = await grocy.getUserSettings();
-            break;
-          case 'getUserSetting':
-            result = await grocy.getUserSetting(payload.settingKey);
-            break;
-          case 'setUserSetting':
-            result = await grocy.setUserSetting(payload.settingKey, payload.data);
-            break;
-
-          // Recipe operations
-          case 'addRecipeProductsToShoppingList':
-            result = await grocy.addRecipeProductsToShoppingList(payload.recipeId, payload.data);
-            break;
-          case 'getRecipeFulfillment':
-            result = await grocy.getRecipeFulfillment(payload.recipeId);
-            break;
-          case 'consumeRecipe':
-            result = await grocy.consumeRecipe(payload.recipeId);
-            break;
-          case 'getAllRecipesFulfillment':
-            result = await grocy.getAllRecipesFulfillment(options);
-            break;
-
-          // Chore operations
-          case 'getChores':
-            result = await grocy.getChores(options);
-            break;
-          case 'getChoreDetails':
-            result = await grocy.getChoreDetails(payload.choreId);
-            break;
-          case 'executeChore':
-            result = await grocy.executeChore(payload.choreId, payload.data);
-            break;
-
-          // Battery operations
-          case 'getBatteries':
-            result = await grocy.getBatteries(options);
-            break;
-          case 'getBatteryDetails':
-            result = await grocy.getBatteryDetails(payload.batteryId);
-            break;
-          case 'chargeBattery':
-            result = await grocy.chargeBattery(payload.batteryId, payload.data);
-            break;
-
-          // Task operations
-          case 'getTasks':
-            result = await grocy.getTasks(options);
-            break;
-          case 'completeTask':
-            result = await grocy.completeTask(payload.taskId, payload.data);
-            break;
-          case 'undoTask':
-            result = await grocy.undoTask(payload.taskId);
-            break;
-
-          // Calendar operations
-          case 'getCalendar':
-            result = await grocy.getCalendar();
-            break;
-          case 'getCalendarSharingLink':
-            result = await grocy.getCalendarSharingLink();
-            break;
-
-          default:
-            node.status({ fill: 'red', shape: 'ring', text: 'invalid operation' });
-            const error = new Error(`Invalid operation: ${operation}`);
-            if (done) {
-              done(error);
-            } else {
-              node.error(error, msg);
-            }
-            return;
-        }
-
-        // Update status and send response
-        node.status({ fill: 'green', shape: 'dot', text: 'success' });
-        msg.payload = result;
-        send(msg);
-
-        if (done) {
-          done();
-        }
+        return result;
       } catch (error) {
-        node.status({ fill: 'red', shape: 'dot', text: error.message });
-        if (done) {
-          done(error);
-        } else {
-          node.error(error, msg);
-        }
+        // Enhance error with operation context
+        error.operation = operation;
+        error.category = this.router.getOperationCategory(operation);
+        throw error;
       }
-    });
+    };
 
-    node.on('close', function () {
-      node.status({});
-    });
+    // Add utility methods
+    this.getOperationStats = () => {
+      return this.router ? this.router.getStatistics() : null;
+    };
+
+    this.supportsOperation = (operation) => {
+      return this.router ? this.router.isSupported(operation) : false;
+    };
   }
 
+  // Register the node with Node-RED
   RED.nodes.registerType('grocy-api', GrocyApiNode, {
     credentials: {
       apiKey: { type: 'password' },
