@@ -3,13 +3,81 @@
         category: 'config',
         defaults: {
             name: { value: "" },
-            apiUrl: { value: "", required: true }
+            apiUrl: { value: "", required: true, validate: function(v) {
+                if (!v) return false;
+                try {
+                    const url = new URL(v);
+                    return url.protocol === 'http:' || url.protocol === 'https:';
+                } catch(e) {
+                    return false;
+                }
+            }},
+            verifySsl: { value: true }, // Default to secure
+            allowSelfSigned: { value: false }, // Default to not accepting self-signed certs
+            timeout: { value: 30000 } // 30 second default timeout
         },
         credentials: {
             apiKey: { type: "password", required: true }
         },
         label: function() {
             return this.name || "Grocy API";
+        },
+        oneditprepare: function() {
+            // Function to update warnings based on settings
+            function updateSecurityWarnings() {
+                const url = $('#node-config-input-apiUrl').val();
+                const verifySsl = $('#node-config-input-verifySsl').is(':checked');
+                const allowSelfSigned = $('#node-config-input-allowSelfSigned').is(':checked');
+                
+                // Hide all warnings first
+                $('.grocy-security-warning').hide();
+                
+                if (url) {
+                    try {
+                        const parsedUrl = new URL(url);
+                        const hostname = parsedUrl.hostname;
+                        const isLocal = hostname === 'localhost' || 
+                                       hostname === '127.0.0.1' ||
+                                       hostname.startsWith('192.168.') ||
+                                       hostname.startsWith('10.') ||
+                                       hostname.startsWith('172.');
+                        
+                        // Show appropriate warnings based on configuration
+                        if (parsedUrl.protocol === 'http:') {
+                            if (!isLocal) {
+                                $('#grocy-http-warning').show();
+                            } else {
+                                $('#grocy-http-local-info').show();
+                            }
+                        } else if (parsedUrl.protocol === 'https:') {
+                            if (!verifySsl) {
+                                $('#grocy-ssl-disabled-warning').show();
+                            } else if (allowSelfSigned) {
+                                $('#grocy-self-signed-info').show();
+                            }
+                        }
+                    } catch(e) {
+                        // Invalid URL, validation will catch it
+                    }
+                }
+            }
+            
+            // Update warnings when any relevant field changes
+            $('#node-config-input-apiUrl, #node-config-input-verifySsl, #node-config-input-allowSelfSigned')
+                .on('change input', updateSecurityWarnings);
+            
+            // Enable/disable self-signed option based on SSL verification
+            $('#node-config-input-verifySsl').on('change', function() {
+                const isChecked = $(this).is(':checked');
+                $('#node-config-input-allowSelfSigned').prop('disabled', !isChecked);
+                if (!isChecked) {
+                    $('#node-config-input-allowSelfSigned').prop('checked', false);
+                }
+            });
+            
+            // Initialize state
+            updateSecurityWarnings();
+            $('#node-config-input-verifySsl').trigger('change');
         }
     });
 </script>
@@ -19,27 +87,220 @@
         <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="Name">
     </div>
+    
     <div class="form-row">
         <label for="node-config-input-apiUrl"><i class="fa fa-globe"></i> API URL</label>
         <input type="text" id="node-config-input-apiUrl" placeholder="https://your-grocy-instance.com">
+        <div class="form-tips">
+            <i class="fa fa-info-circle"></i> Your Grocy instance URL (supports both HTTP and HTTPS)
+        </div>
     </div>
+    
+    <!-- Security Warnings -->
+    <div id="grocy-http-warning" class="form-tips grocy-security-warning" style="display:none; background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin: 10px 0; border-radius: 4px;">
+        <i class="fa fa-warning" style="color: #ff9800;"></i>
+        <strong>Security Warning:</strong> HTTP connection detected. Your API key and data will be transmitted unencrypted. 
+        Consider using HTTPS for production deployments.
+    </div>
+    
+    <div id="grocy-http-local-info" class="form-tips grocy-security-warning" style="display:none; background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 10px; margin: 10px 0; border-radius: 4px;">
+        <i class="fa fa-info-circle" style="color: #0c5460;"></i>
+        <strong>Local Network:</strong> HTTP connection to local/private network detected. This is common for self-hosted instances.
+    </div>
+    
+    <div id="grocy-ssl-disabled-warning" class="form-tips grocy-security-warning" style="display:none; background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin: 10px 0; border-radius: 4px;">
+        <i class="fa fa-shield" style="color: #ff9800;"></i>
+        <strong>SSL Verification Disabled:</strong> Certificate validation is disabled. Only use this for trusted self-hosted instances.
+    </div>
+    
+    <div id="grocy-self-signed-info" class="form-tips grocy-security-warning" style="display:none; background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 10px; margin: 10px 0; border-radius: 4px;">
+        <i class="fa fa-certificate" style="color: #0c5460;"></i>
+        <strong>Self-Signed Certificates:</strong> Accepting self-signed certificates. Common for internal deployments.
+    </div>
+    
     <div class="form-row">
         <label for="node-config-input-apiKey"><i class="fa fa-key"></i> API Key</label>
         <input type="password" id="node-config-input-apiKey">
+        <div class="form-tips">
+            Generate in Grocy: Settings → Manage API keys
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc;">
+        <h4><i class="fa fa-shield"></i> Security Settings</h4>
+        
+        <div class="form-row">
+            <label>&nbsp;</label>
+            <input type="checkbox" id="node-config-input-verifySsl" style="display: inline-block; width: auto; vertical-align: top;">
+            <label for="node-config-input-verifySsl" style="width: auto;">
+                Verify SSL certificates (recommended)
+            </label>
+            <div class="form-tips" style="margin-left: 18px;">
+                When enabled, validates SSL/TLS certificates for HTTPS connections. Disable only for trusted self-hosted instances.
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <label>&nbsp;</label>
+            <input type="checkbox" id="node-config-input-allowSelfSigned" style="display: inline-block; width: auto; vertical-align: top;">
+            <label for="node-config-input-allowSelfSigned" style="width: auto;">
+                Allow self-signed certificates
+            </label>
+            <div class="form-tips" style="margin-left: 18px;">
+                Accept self-signed certificates (common for internal deployments). Only available when SSL verification is enabled.
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc;">
+        <h4><i class="fa fa-clock-o"></i> Connection Settings</h4>
+        
+        <div class="form-row">
+            <label for="node-config-input-timeout"><i class="fa fa-hourglass-half"></i> Timeout</label>
+            <input type="number" id="node-config-input-timeout" min="1000" max="300000" placeholder="30000">
+            <span style="margin-left: 5px;">ms</span>
+            <div class="form-tips">
+                Connection timeout in milliseconds (default: 30000ms = 30 seconds)
+            </div>
+        </div>
     </div>
 </script>
 
 <script type="text/html" data-help-name="grocy-config">
-    <p>Grocy API connection configuration</p>
+    <p>Grocy API connection configuration with flexible security options for self-hosted deployments.</p>
     
     <h3>Details</h3>
-    <p>This node configures the connection to your Grocy instance.</p>
+    <p>This node configures the connection to your Grocy instance, supporting both cloud and self-hosted deployments with appropriate security settings.</p>
     
     <h3>Configuration</h3>
     <dl class="message-properties">
         <dt>API URL <span class="property-type">string</span></dt>
-        <dd>The URL of your Grocy instance (e.g., https://your-grocy-instance.com)</dd>
+        <dd>
+            The URL of your Grocy instance.
+            <ul>
+                <li><strong>HTTPS:</strong> <code>https://your-grocy-instance.com</code> (recommended)</li>
+                <li><strong>HTTP:</strong> <code>http://192.168.1.100:9283</code> (self-hosted/internal)</li>
+            </ul>
+        </dd>
+        
         <dt>API Key <span class="property-type">string</span></dt>
-        <dd>Your Grocy API key. Can be generated in the Grocy settings under "Manage API keys".</dd>
+        <dd>
+            Your Grocy API key. Generate in Grocy: Settings → Manage API keys.
+            <br/><strong>Security:</strong> Stored encrypted in Node-RED's credential system.
+        </dd>
+        
+        <dt>Verify SSL <span class="property-type">boolean</span></dt>
+        <dd>
+            When enabled (default), validates SSL/TLS certificates for HTTPS connections.
+            <br/><strong>Disable only for:</strong> Trusted self-hosted instances with certificate issues.
+        </dd>
+        
+        <dt>Allow Self-Signed <span class="property-type">boolean</span></dt>
+        <dd>
+            Accept self-signed certificates (requires SSL verification enabled).
+            <br/><strong>Use for:</strong> Internal deployments with self-signed certificates.
+        </dd>
+        
+        <dt>Timeout <span class="property-type">number</span></dt>
+        <dd>
+            Connection timeout in milliseconds (default: 30000ms).
+            <br/><strong>Range:</strong> 1000ms - 300000ms (1 second - 5 minutes)
+        </dd>
+    </dl>
+    
+    <h3>🏠 Self-Hosted Deployment Patterns</h3>
+    <p>Common configurations for different deployment scenarios:</p>
+    
+    <h4>Home Network (HTTP)</h4>
+    <pre>URL: http://192.168.1.100:9283
+Verify SSL: N/A (HTTP)
+Typical for: Home Assistant integration, local NAS</pre>
+    
+    <h4>Docker with Traefik/Nginx (HTTPS + Self-Signed)</h4>
+    <pre>URL: https://grocy.local.domain
+Verify SSL: ✓ Enabled
+Allow Self-Signed: ✓ Enabled
+Typical for: Homelab with reverse proxy</pre>
+    
+    <h4>Cloud VPS (HTTPS + Let's Encrypt)</h4>
+    <pre>URL: https://grocy.yourdomain.com
+Verify SSL: ✓ Enabled (default)
+Allow Self-Signed: ✗ Disabled
+Typical for: Public-facing instances</pre>
+    
+    <h4>Corporate Network (HTTPS + Internal CA)</h4>
+    <pre>URL: https://grocy.internal.company.com
+Verify SSL: ✓ Enabled
+Allow Self-Signed: May need custom CA trust</pre>
+    
+    <h3>🔒 Security Considerations</h3>
+    
+    <h4>Recommended Settings by Environment</h4>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr style="background: #f0f0f0;">
+            <th style="padding: 8px; border: 1px solid #ddd;">Environment</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">Protocol</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">SSL Verify</th>
+            <th style="padding: 8px; border: 1px solid #ddd;">Notes</th>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">Production/Cloud</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">HTTPS</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">✓ Yes</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">Full security</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">Home Network</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">HTTP</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">N/A</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">Trusted network only</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">Homelab</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">HTTPS</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">Optional</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">Self-signed OK</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">Development</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">HTTP</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">N/A</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">localhost only</td>
+        </tr>
+    </table>
+    
+    <h3>⚠️ Security Warnings</h3>
+    <ul>
+        <li><strong>HTTP over Internet:</strong> Never use HTTP for internet-accessible instances</li>
+        <li><strong>Disabled SSL Verification:</strong> Only disable for trusted, isolated networks</li>
+        <li><strong>API Key Protection:</strong> Always protect your API key regardless of protocol</li>
+        <li><strong>Network Segmentation:</strong> Consider VLANs for IoT/automation networks</li>
+    </ul>
+    
+    <h3>🛠️ Troubleshooting</h3>
+    <dl>
+        <dt>Certificate errors with self-hosted instance</dt>
+        <dd>
+            1. Try enabling "Allow self-signed certificates"<br/>
+            2. Or disable "Verify SSL" for trusted networks only<br/>
+            3. Consider using a proper certificate (Let's Encrypt)
+        </dd>
+        
+        <dt>Connection timeouts</dt>
+        <dd>
+            1. Increase timeout value (up to 300000ms)<br/>
+            2. Check network connectivity<br/>
+            3. Verify Grocy instance is running
+        </dd>
+        
+        <dt>HTTP warning on local network</dt>
+        <dd>
+            This is informational only. HTTP is acceptable for:
+            <ul>
+                <li>Private IP ranges (192.168.x.x, 10.x.x.x, 172.16-31.x.x)</li>
+                <li>localhost/127.0.0.1</li>
+                <li>Isolated VLANs</li>
+            </ul>
+        </dd>
     </dl>
 </script>

@@ -1,0 +1,329 @@
+{
+  "id": "logging-demo-flow",
+  "label": "Grocy Logging Demo",
+  "nodes": [
+    {
+      "id": "inject-1",
+      "type": "inject",
+      "name": "Trigger API Call",
+      "props": [
+        {
+          "p": "payload",
+          "v": "{}",
+          "vt": "json"
+        },
+        {
+          "p": "operation",
+          "v": "getStock",
+          "vt": "str"
+        }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 150,
+      "y": 100,
+      "wires": [["grocy-1"]]
+    },
+    {
+      "id": "grocy-1",
+      "type": "grocy-api",
+      "name": "Get Stock (with logging)",
+      "server": "grocy-server",
+      "operation": "getStock",
+      "entityType": "",
+      "enableLogging": true,
+      "logging": {
+        "logLevel": "DEBUG",
+        "enableRequestLogging": true,
+        "enableResponseLogging": true,
+        "enablePerformanceTracking": true,
+        "enableAudit": true
+      },
+      "x": 380,
+      "y": 100,
+      "wires": [["debug-1", "metrics-1"]]
+    },
+    {
+      "id": "debug-1",
+      "type": "debug",
+      "name": "Show Result",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 610,
+      "y": 100,
+      "wires": []
+    },
+    {
+      "id": "metrics-1",
+      "type": "function",
+      "name": "Get Metrics",
+      "func": "// Get metrics from the node\nconst metrics = node.getLogMetrics ? node.getLogMetrics() : {};\n\n// Add correlation ID\nmetrics.correlationId = msg._correlationId;\n\n// Return metrics\nmsg.payload = metrics;\nreturn msg;",
+      "outputs": 1,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 610,
+      "y": 160,
+      "wires": [["debug-2"]]
+    },
+    {
+      "id": "debug-2",
+      "type": "debug",
+      "name": "Show Metrics",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "payload",
+      "targetType": "msg",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 800,
+      "y": 160,
+      "wires": []
+    },
+    {
+      "id": "inject-2",
+      "type": "inject",
+      "name": "Test Slow Request",
+      "props": [
+        {
+          "p": "payload",
+          "v": "{}",
+          "vt": "json"
+        },
+        {
+          "p": "operation",
+          "v": "getSystemInfo",
+          "vt": "str"
+        },
+        {
+          "p": "delay",
+          "v": "6000",
+          "vt": "num"
+        }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 160,
+      "y": 260,
+      "wires": [["delay-1"]]
+    },
+    {
+      "id": "delay-1",
+      "type": "delay",
+      "name": "Simulate Slow Network",
+      "pauseType": "delay",
+      "timeout": "5",
+      "timeoutUnits": "seconds",
+      "rate": "1",
+      "nbRateUnits": "1",
+      "rateUnits": "second",
+      "randomFirst": "1",
+      "randomLast": "5",
+      "randomUnits": "seconds",
+      "drop": false,
+      "x": 380,
+      "y": 260,
+      "wires": [["grocy-2"]]
+    },
+    {
+      "id": "grocy-2",
+      "type": "grocy-api",
+      "name": "Slow Request (triggers warning)",
+      "server": "grocy-server",
+      "operation": "getSystemInfo",
+      "entityType": "",
+      "enableLogging": true,
+      "logging": {
+        "logLevel": "DEBUG",
+        "enablePerformanceTracking": true,
+        "performanceThresholds": {
+          "GET": 1000
+        }
+      },
+      "x": 640,
+      "y": 260,
+      "wires": [["debug-3"]]
+    },
+    {
+      "id": "debug-3",
+      "type": "debug",
+      "name": "Show Slow Result",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 870,
+      "y": 260,
+      "wires": []
+    },
+    {
+      "id": "inject-3",
+      "type": "inject",
+      "name": "Test Error Logging",
+      "props": [
+        {
+          "p": "payload",
+          "v": "{}",
+          "vt": "json"
+        },
+        {
+          "p": "operation",
+          "v": "invalidOperation",
+          "vt": "str"
+        }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 160,
+      "y": 380,
+      "wires": [["grocy-3"]]
+    },
+    {
+      "id": "grocy-3",
+      "type": "grocy-api",
+      "name": "Invalid Operation (error)",
+      "server": "grocy-server",
+      "operation": "invalidOperation",
+      "entityType": "",
+      "enableLogging": true,
+      "logging": {
+        "logLevel": "DEBUG",
+        "enableRequestLogging": true,
+        "enableResponseLogging": true
+      },
+      "x": 410,
+      "y": 380,
+      "wires": [["debug-4"]]
+    },
+    {
+      "id": "debug-4",
+      "type": "debug",
+      "name": "Show Error",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 630,
+      "y": 380,
+      "wires": []
+    },
+    {
+      "id": "function-1",
+      "type": "function",
+      "name": "Add Custom Correlation ID",
+      "func": "// Add custom correlation ID\nmsg._correlationId = 'custom-' + Date.now();\nmsg.operation = 'getStock';\nreturn msg;",
+      "outputs": 1,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 420,
+      "y": 500,
+      "wires": [["grocy-4"]]
+    },
+    {
+      "id": "inject-4",
+      "type": "inject",
+      "name": "Custom Correlation ID",
+      "props": [
+        {
+          "p": "payload",
+          "v": "{}",
+          "vt": "json"
+        }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 170,
+      "y": 500,
+      "wires": [["function-1"]]
+    },
+    {
+      "id": "grocy-4",
+      "type": "grocy-api",
+      "name": "Track with Custom ID",
+      "server": "grocy-server",
+      "operation": "",
+      "entityType": "",
+      "enableLogging": true,
+      "logging": {
+        "logLevel": "DEBUG",
+        "enableAudit": true
+      },
+      "x": 680,
+      "y": 500,
+      "wires": [["debug-5"]]
+    },
+    {
+      "id": "debug-5",
+      "type": "debug",
+      "name": "Show Custom ID Result",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 910,
+      "y": 500,
+      "wires": []
+    },
+    {
+      "id": "comment-1",
+      "type": "comment",
+      "name": "Logging System Demo",
+      "info": "This flow demonstrates the comprehensive logging capabilities:\n\n1. **Basic Logging**: Shows request/response logging with automatic correlation IDs\n\n2. **Performance Monitoring**: Simulates a slow request that triggers performance warnings\n\n3. **Error Logging**: Shows how errors are logged with full context\n\n4. **Custom Correlation IDs**: Demonstrates how to set custom correlation IDs for tracking\n\n5. **Metrics Collection**: Shows how to access performance metrics from nodes\n\nAll logs include:\n- Correlation IDs for end-to-end tracing\n- Performance metrics\n- Sanitized sensitive data\n- Structured JSON format\n- Configurable log levels",
+      "x": 160,
+      "y": 40,
+      "wires": []
+    },
+    {
+      "id": "grocy-server",
+      "type": "grocy-server-config",
+      "name": "Grocy Server (with logging)",
+      "apiUrl": "https://grocy.example.com",
+      "verifySsl": true,
+      "allowSelfSigned": false,
+      "timeout": 30000,
+      "logging": {
+        "enabled": true,
+        "logLevel": "DEBUG",
+        "enableRequestLogging": true,
+        "enableResponseLogging": true,
+        "enablePerformanceTracking": true,
+        "enableAudit": true
+      }
+    }
+  ]
+}
