@@ -1,5 +1,5 @@
 module.exports = {
-  // Test environment
+  // Test environment with proper Node.js setup
   testEnvironment: 'node',
   
   // Test file patterns
@@ -30,14 +30,14 @@ module.exports = {
   //   }
   // },
   
-  // Setup files (commented out initially to avoid issues)
-  // setupFilesAfterEnv: ['<rootDir>/test/setup.js'],
+  // Setup files for Node-RED environment
+  setupFiles: ['<rootDir>/test/jest.setup.js'],
   
   // Module paths and aliases
   moduleDirectories: ['node_modules', '<rootDir>/nodes'],
   
   // Test timeout (increased for Node-RED tests)
-  testTimeout: 10000,
+  testTimeout: 15000,
   
   // Clear mocks between tests
   clearMocks: true,
@@ -45,7 +45,7 @@ module.exports = {
   // Verbose output
   verbose: true,
   
-  // Transform configuration (for ES modules)
+  // Transform configuration - use default for CommonJS
   transform: {},
   
   // Module name mapping for mocking ES modules
@@ -56,8 +56,14 @@ module.exports = {
   // Module file extensions
   moduleFileExtensions: ['js', 'json'],
   
+  // Force CommonJS for Node-RED compatibility
+  extensionsToTreatAsEsm: [],
+  
   // Handle dynamic imports and VM modules
   testEnvironmentOptions: {
     customExportConditions: ['node', 'node-addons']
-  }
+  },
+  
+  // Force CommonJS module loading
+  preset: null
 };
