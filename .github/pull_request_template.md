@@ -4,6 +4,7 @@
 ## Related Issue
 <!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
 <!--- Please link to the issue here: -->
+Fixes #(issue number)
 
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
@@ -13,6 +14,19 @@
 <!--- Include details of your testing environment, and the tests you ran to -->
 <!--- see how your change affects other areas of the code, etc. -->
 
+**Test Configuration:**
+- Node-RED version:
+- Node.js version:
+- Grocy version:
+- Operating System:
+
+**Test Coverage:**
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] Manual testing in Node-RED
+- [ ] Tested with real Grocy instance
+- [ ] Tested error scenarios
+
 ## Types of changes
 <!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
 - [ ] Bug fix (non-breaking change which fixes an issue)
@@ -21,12 +35,43 @@
 - [ ] Documentation update
 - [ ] Code refactor
 - [ ] Performance improvement
+- [ ] Security fix
+- [ ] Dependencies update
+
+## Impact Analysis
+<!--- Describe which parts of the codebase are affected -->
+**Affected Nodes:**
+- [ ] grocy-config
+- [ ] grocy-api
+- [ ] grocy-stock
+- [ ] grocy-shopping-list
+- [ ] grocy-chores
+- [ ] grocy-batteries
+
+**Affected Components:**
+- [ ] Base node class
+- [ ] Operation modules
+- [ ] Validators
+- [ ] Error handler
+- [ ] Client wrapper
+- [ ] Tests
 
 ## Checklist:
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-- [ ] My code follows the code style of this project.
-- [ ] My change requires a change to the documentation.
-- [ ] I have updated the documentation accordingly.
-- [ ] I have added tests to cover my changes.
-- [ ] All new and existing tests passed.
+- [ ] My code follows the code style of this project (async/await, ES6+)
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published
+- [ ] I have updated the CHANGELOG.md file with my changes
+- [ ] I have tested backward compatibility
+
+## Screenshots (if applicable)
+<!--- Add screenshots to help explain your changes -->
+
+## Additional Notes
+<!--- Any additional information that reviewers should know -->
