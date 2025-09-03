@@ -320,6 +320,31 @@ class TimeoutHandler {
       errorCount: errors.filter(e => e !== undefined).length
     };
   }
+
+  /**
+   * Cleanup pending operations and resources to prevent memory leaks
+   * Should be called when shutting down nodes or cleaning up instances
+   */
+  cleanup() {
+    // Reject all pending operations with shutdown error
+    for (const [id, data] of this.pendingOperations) {
+      if (data.reject) {
+        data.reject(new Error('Node shutdown - operation cancelled'));
+      }
+      // Clear any associated timeouts
+      if (data.timeoutId) {
+        clearTimeout(data.timeoutId);
+      }
+    }
+    
+    // Clear all tracking maps
+    this.pendingOperations.clear();
+    this.circuitBreakerStatus.clear();
+    
+    // Reset failure counts
+    this.consecutiveFailures = 0;
+    this.lastFailureTime = null;
+  }
 }
 
 module.exports = TimeoutHandler;

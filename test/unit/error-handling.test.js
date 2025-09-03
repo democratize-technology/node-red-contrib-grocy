@@ -192,6 +192,49 @@ describe('Error Handling System', () => {
           normalData: 'visible'
         });
       });
+
+      test('should sanitize error messages for XSS prevention', () => {
+        const xssAttempts = [
+          '<script>alert("xss")</script>',
+          '<img src="x" onerror="alert(1)">',
+          '"><script>alert("xss")</script>',
+          "javascript:alert('xss')",
+          '<svg onload="alert(1)">',
+          '&lt;script&gt;alert("nested")&lt;/script&gt;'
+        ];
+
+        xssAttempts.forEach(malicious => {
+          const sanitized = ErrorHandler.sanitizeForDisplay(malicious);
+          
+          // Should not contain any executable HTML/JS
+          expect(sanitized).not.toContain('<script');
+          expect(sanitized).not.toContain('<img');
+          expect(sanitized).not.toContain('<svg');
+          expect(sanitized).not.toContain('javascript:');
+          expect(sanitized).not.toContain('onerror=');
+          expect(sanitized).not.toContain('onload=');
+          
+          // Should contain escaped characters
+          if (malicious.includes('<')) {
+            expect(sanitized).toContain('&lt;');
+          }
+          if (malicious.includes('>')) {
+            expect(sanitized).toContain('&gt;');
+          }
+          if (malicious.includes('"')) {
+            expect(sanitized).toContain('&quot;');
+          }
+          if (malicious.includes(':')) {
+            expect(sanitized).toContain('&#x3A;');
+          }
+        });
+
+        // Test basic functionality with safe strings
+        expect(ErrorHandler.sanitizeForDisplay('Normal error message')).toBe('Normal error message');
+        expect(ErrorHandler.sanitizeForDisplay('')).toBe('');
+        expect(ErrorHandler.sanitizeForDisplay(null)).toBe('');
+        expect(ErrorHandler.sanitizeForDisplay(undefined)).toBe('');
+      });
     });
 
     describe('Error Factory Methods', () => {

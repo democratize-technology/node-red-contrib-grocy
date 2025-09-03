@@ -23,13 +23,13 @@ class ErrorHandler {
     node.status({
       fill: 'red',
       shape: errorInfo.isTemporary ? 'ring' : 'dot',
-      text: errorInfo.statusText
+      text: this.sanitizeForDisplay(errorInfo.statusText)
     });
 
     // Create error response
     const errorResponse = {
       error: {
-        message: errorInfo.message,
+        message: this.sanitizeForDisplay(errorInfo.message),
         type: errorInfo.type,
         statusCode: errorInfo.statusCode,
         isTemporary: errorInfo.isTemporary,
@@ -109,7 +109,7 @@ class ErrorHandler {
     }
     // Generic errors
     else {
-      errorInfo.statusText = this.truncateMessage(error.message, 20);
+      errorInfo.statusText = this.sanitizeForDisplay(this.truncateMessage(error.message, 20));
     }
 
     return errorInfo;
@@ -697,6 +697,34 @@ class ErrorHandler {
     }
 
     return sanitized;
+  }
+
+  /**
+   * Sanitize error messages for display to prevent XSS attacks
+   * Escapes HTML characters that could be used for XSS injection
+   * @param {string} message - The error message to sanitize
+   * @returns {string} HTML-escaped message safe for display
+   */
+  static sanitizeForDisplay(message) {
+    if (!message || typeof message !== 'string') {
+      return '';
+    }
+
+    // HTML escape map for preventing XSS
+    const htmlEscapeMap = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+      '/': '&#x2F;',
+      '`': '&#x60;',
+      '=': '&#x3D;',
+      ':': '&#x3A;'
+    };
+
+    // Replace potentially dangerous characters with HTML entities
+    return message.replace(/[&<>"'`=\/:]/g, (s) => htmlEscapeMap[s]);
   }
 
   /**

@@ -138,17 +138,6 @@ class GrocyClient {
     };
   }
 
-  /**
-   * No longer needed - we use GrocyAPIWrapper directly
-   */
-  async _asyncInit() {
-    // This method is no longer used but kept for backward compatibility
-    if (!this.api) {
-      this.api = new GrocyAPIWrapper(this.apiUrl, this.apiKey, this.sslOptions);
-      this._initialized = true;
-    }
-    return this.api;
-  }
 
   /**
    * Get the underlying Grocy API instance
