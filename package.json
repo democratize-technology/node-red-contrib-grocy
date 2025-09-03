@@ -1,26 +1,54 @@
 {
   "name": "node-red-contrib-grocy",
-  "version": "0.2.2",
-  "description": "Node-RED nodes to interact with the Grocy API",
+  "version": "0.3.0",
+  "description": "Comprehensive Node-RED integration for Grocy - self-hosted grocery and household management. Features modular architecture, robust error handling, and full API coverage.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest --testPathPattern=test/unit",
+    "test:integration": "jest --testPathPattern=test/integration",
+    "test:ci": "jest --coverage --ci --watchAll=false --passWithNoTests",
+    "coverage": "nyc jest",
+    "coverage:report": "nyc report --reporter=html --reporter=text",
+    "lint": "eslint nodes/**/*.js test/**/*.js",
+    "lint:fix": "eslint nodes/**/*.js test/**/*.js --fix",
+    "dev": "npm run test:watch",
+    "prepare": "npm test",
+    "pretest": "echo 'Running pre-test checks...'",
+    "posttest": "echo 'Tests completed.'",
+    "release": "npm run test && npm publish",
+    "release:dry": "npm run test && npm publish --dry-run"
   },
   "keywords": [
     "node-red",
     "grocy",
     "api",
-    "stock",
+    "home-automation",
+    "inventory-management",
+    "stock-management",
     "shopping-list",
     "chores",
-    "tasks",
-    "batteries"
+    "task-management",
+    "batteries",
+    "household",
+    "groceries",
+    "smart-home",
+    "iot",
+    "self-hosted"
   ],
   "author": {
     "name": "Democratize Technology",
     "email": "hello@democratize.technology",
     "url": "https://democratize.technology"
   },
+  "contributors": [
+    {
+      "name": "Democratize Technology Team",
+      "email": "hello@democratize.technology"
+    }
+  ],
   "license": "MIT",
   "node-red": {
     "nodes": {
@@ -52,5 +80,12 @@
   "homepage": "https://github.com/democratize-technology/node-red-contrib-grocy#readme",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nock": "^14.0.10",
+    "node-red-node-test-helper": "^0.3.5",
+    "nyc": "^17.1.0",
+    "supertest": "^7.1.4"
   }
 }
