@@ -144,8 +144,9 @@ class GrocyClient {
    * @returns {GrocyAPI|Promise<GrocyAPI>} The Grocy API instance
    */
   getAPI() {
-    if (this._initialized && this.api) {
-      return this.api;
+    const api = this.api;
+    if (this._initialized && api) {
+      return api;
     }
     
     if (this._initPromise) {
@@ -160,8 +161,9 @@ class GrocyClient {
    * @returns {Promise<GrocyAPI>} The initialized Grocy API instance
    */
   async waitForReady() {
-    if (this._initialized && this.api) {
-      return this.api;
+    const api = this.api;
+    if (this._initialized && api) {
+      return api;
     }
     
     if (this._initPromise) {
