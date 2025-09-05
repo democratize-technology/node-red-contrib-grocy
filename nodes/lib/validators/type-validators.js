@@ -144,7 +144,7 @@ class TypeValidators {
    * @throws {Error} If date is invalid
    */
   static validateDate(date, paramName = 'date', options = {}) {
-    const { allowPast = true, allowFuture = true, format = null } = options;
+    const { allowPast = true, allowFuture = true, format = null, minDate = null, maxDate = null } = options;
     
     if (date === undefined || date === null) {
       throw ErrorHandler.validationError(`${paramName} is required`);
@@ -178,6 +178,23 @@ class TypeValidators {
       throw ErrorHandler.validationError(`${paramName} cannot be in the future`);
     }
 
+    // Date range validation
+    if (minDate) {
+      const minDateObj = minDate instanceof Date ? minDate : new Date(minDate);
+      if (dateObj < minDateObj) {
+        const minDateStr = minDateObj.toISOString().split('T')[0];
+        throw ErrorHandler.validationError(`${paramName} must be after ${minDateStr}`);
+      }
+    }
+    
+    if (maxDate) {
+      const maxDateObj = maxDate instanceof Date ? maxDate : new Date(maxDate);
+      if (dateObj > maxDateObj) {
+        const maxDateStr = maxDateObj.toISOString().split('T')[0];
+        throw ErrorHandler.validationError(`${paramName} must be before ${maxDateStr}`);
+      }
+    }
+
     // Format validation if specified (basic ISO check)
     if (format === 'ISO' && typeof date === 'string') {
       const isoRegex = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/;
@@ -195,7 +212,7 @@ class TypeValidators {
    * @throws {Error} If array is invalid
    */
   static validateArray(array, paramName = 'array', options = {}) {
-    const { minLength = 0, maxLength = null, allowEmpty = true, elementValidator = null } = options;
+    const { minLength = 0, maxLength = null, allowEmpty = true, elementValidator = null, unique = false } = options;
     
     if (!Array.isArray(array)) {
       throw ErrorHandler.validationError(`${paramName} must be an array`);
@@ -211,6 +228,14 @@ class TypeValidators {
 
     if (maxLength !== null && array.length > maxLength) {
       throw ErrorHandler.validationError(`${paramName} cannot have more than ${maxLength} elements`);
+    }
+
+    // Check for unique elements if required
+    if (unique) {
+      const uniqueElements = new Set(array);
+      if (uniqueElements.size !== array.length) {
+        throw ErrorHandler.validationError(`${paramName} contains duplicate elements`);
+      }
     }
 
     // Validate each element if validator provided

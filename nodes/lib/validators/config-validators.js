@@ -1,6 +1,7 @@
 const ErrorHandler = require('../error-handler');
 const FormatValidators = require('./format-validators');
 const ParameterValidators = require('./parameter-validators');
+const SecurityValidators = require('./security-validators');
 
 /**
  * Configuration and domain-specific validation utilities
@@ -8,22 +9,47 @@ const ParameterValidators = require('./parameter-validators');
  */
 class ConfigValidators {
   /**
-   * Validate file parameters for file operations
+   * Validate file parameters for file operations with comprehensive security checks
+   * Prevents path traversal attacks and validates file groups
+   * 
+   * Security Features:
+   * - Path traversal protection (blocks ../, absolute paths, etc.)
+   * - File group validation (alphanumeric only)
+   * - File extension validation (optional)
+   * - Dangerous pattern blocking (.env, .git, etc.)
+   * 
    * @param {Object} params - File operation parameters
-   * @param {string} params.group - File group
-   * @param {string} params.fileName - File name
-   * @throws {Error} If file parameters are invalid
+   * @param {string} params.group - File group (alphanumeric, underscore, hyphen only)
+   * @param {string} params.fileName - File name (must be safe relative path)
+   * @param {Object} options - Additional validation options
+   * @param {Array<string>} options.allowedExtensions - Restrict to specific file extensions
+   * @throws {Error} If file parameters are invalid or contain security vulnerabilities
    */
-  static validateFileParams(params) {
+  static validateFileParams(params, options = {}) {
+    // First validate required parameters exist
     ParameterValidators.validateRequired(params, ['group', 'fileName']);
     
-    if (typeof params.group !== 'string' || params.group.trim().length === 0) {
-      throw new Error('File group must be a non-empty string');
-    }
+    // Validate and sanitize the file group
+    const validatedGroup = SecurityValidators.validateFileGroup(params.group);
     
-    if (typeof params.fileName !== 'string' || params.fileName.trim().length === 0) {
-      throw new Error('File name must be a non-empty string');
-    }
+    // Validate the file name with comprehensive security checks
+    const fileValidationOptions = {
+      allowAbsolute: false,  // Never allow absolute paths for security
+      allowRelative: true,   // Allow relative paths within current directory
+      allowedExtensions: options.allowedExtensions || null,
+      blockedPatterns: options.blockedPatterns || []
+    };
+    
+    const validatedFileName = SecurityValidators.validateFilePath(
+      params.fileName, 
+      fileValidationOptions
+    );
+    
+    // Return validated and normalized parameters
+    return {
+      group: validatedGroup,
+      fileName: validatedFileName
+    };
   }
 
   /**

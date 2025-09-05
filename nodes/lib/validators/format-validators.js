@@ -58,7 +58,8 @@ class FormatValidators {
     const { 
       requireHttps = true,  // SECURITY: HTTPS by default
       allowLocalhost = true, 
-      allowInsecureHttp = false  // Must explicitly opt-in to HTTP
+      allowInsecureHttp = false,  // Must explicitly opt-in to HTTP
+      allowPrivateIP = true  // Allow private IP addresses by default
     } = options;
     
     if (!url || typeof url !== 'string') {
@@ -120,6 +121,11 @@ class FormatValidators {
     if (!allowLocalhost && isLocalHostname) {
       throw ErrorHandler.validationError('Localhost/private network URLs are not allowed in this context');
     }
+
+    // Private IP address validation
+    if (!allowPrivateIP && isLocalHostname) {
+      throw ErrorHandler.validationError('Private IP addresses are not allowed');
+    }
   }
 
   /**
@@ -141,6 +147,49 @@ class FormatValidators {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
       throw ErrorHandler.validationError('Invalid email format');
+    }
+  }
+
+  /**
+   * Validate phone number format
+   * @param {string} phone - The phone number to validate
+   * @param {Object} options - Validation options
+   * @throws {Error} If phone number is invalid
+   */
+  static validatePhoneNumber(phone, options = {}) {
+    const { allowInternational = true, minLength = 10, maxLength = 15 } = options;
+    
+    if (!phone || typeof phone !== 'string') {
+      throw ErrorHandler.validationError('Phone number must be a string');
+    }
+
+    const trimmedPhone = phone.trim();
+    if (trimmedPhone === '') {
+      throw ErrorHandler.validationError('Phone number cannot be empty');
+    }
+
+    // Remove common formatting characters
+    const cleanPhone = trimmedPhone.replace(/[\s\-\(\)\+\.]/g, '');
+    
+    // Basic phone number validation
+    if (!/^\d+$/.test(cleanPhone)) {
+      throw ErrorHandler.validationError('Phone number can only contain digits and formatting characters');
+    }
+
+    if (cleanPhone.length < minLength) {
+      throw ErrorHandler.validationError(`Phone number must be at least ${minLength} digits`);
+    }
+
+    if (cleanPhone.length > maxLength) {
+      throw ErrorHandler.validationError(`Phone number cannot exceed ${maxLength} digits`);
+    }
+
+    // Check for international format if required
+    if (allowInternational && trimmedPhone.startsWith('+')) {
+      const internationalPhone = trimmedPhone.substring(1).replace(/[\s\-\(\)\.]/g, '');
+      if (!/^\d+$/.test(internationalPhone) || internationalPhone.length < 7) {
+        throw ErrorHandler.validationError('Invalid international phone number format');
+      }
     }
   }
 }

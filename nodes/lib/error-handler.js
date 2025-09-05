@@ -357,6 +357,16 @@ class ErrorHandler {
   static rateLimitError(retryAfter = 60) {
     return ErrorFactory.rateLimitError(retryAfter);
   }
+
+  /**
+   * Create a security error for security-related violations
+   * @param {string} message - Error message
+   * @param {Object} details - Additional error details
+   * @returns {Error} Security error
+   */
+  static securityError(message, details = {}) {
+    return ErrorFactory.securityError(message, details);
+  }
 }
 
 module.exports = ErrorHandler;

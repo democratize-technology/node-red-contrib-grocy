@@ -147,10 +147,12 @@ class Validators {
    * @param {Object} params - File operation parameters
    * @param {string} params.group - File group
    * @param {string} params.fileName - File name
+   * @param {Object} options - Validation options
+   * @param {Array<string>} options.allowedExtensions - Allowed file extensions
    * @throws {Error} If file parameters are invalid
    */
-  static validateFileParams(params) {
-    return ConfigValidators.validateFileParams(params);
+  static validateFileParams(params, options = {}) {
+    return ConfigValidators.validateFileParams(params, options);
   }
 
   /**

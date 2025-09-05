@@ -83,6 +83,34 @@ class ErrorFactory {
     error.validationErrors = errors;
     return error;
   }
+
+  /**
+   * Create a security error for security-related violations
+   * @param {string} message - Error message
+   * @param {Object} details - Additional error details
+   * @returns {Error} Security error
+   */
+  static securityError(message, details = {}) {
+    const error = new Error(`Security violation: ${message}`);
+    error.type = 'security';
+    error.category = 'security';
+    error.severity = 'critical';
+    error.details = details;
+    
+    // Add specific security context
+    if (details.field) {
+      error.field = details.field;
+    }
+    if (details.pattern) {
+      error.pattern = details.pattern;
+    }
+    if (details.value) {
+      // Don't expose the actual malicious value in logs
+      error.attemptedValue = '[REDACTED]';
+    }
+    
+    return error;
+  }
 }
 
 module.exports = ErrorFactory;

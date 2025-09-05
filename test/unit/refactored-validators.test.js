@@ -101,11 +101,11 @@ describe('Refactored Validator Modules', () => {
 
       expect(() => {
         ParameterValidators.validateOperation(null);
-      }).toThrow('operation is required');
+      }).toThrow('Operation must be a non-empty string');
 
       expect(() => {
         ParameterValidators.validateOperation('');
-      }).toThrow('operation cannot be empty');
+      }).toThrow('Operation must be a non-empty string');
 
       // Test with supported operations list
       expect(() => {
@@ -114,7 +114,7 @@ describe('Refactored Validator Modules', () => {
 
       expect(() => {
         ParameterValidators.validateOperation('delete', ['get', 'post', 'put']);
-      }).toThrow('Unsupported operation: delete');
+      }).toThrow('Unsupported operation \'delete\'. Supported operations: get, post, put');
     });
 
     test('should validate entity types', () => {
@@ -124,7 +124,7 @@ describe('Refactored Validator Modules', () => {
 
       expect(() => {
         ParameterValidators.validateEntity(null);
-      }).toThrow('entity is required');
+      }).toThrow('Entity type must be a non-empty string');
 
       // Test with supported entities list
       expect(() => {
@@ -133,7 +133,7 @@ describe('Refactored Validator Modules', () => {
 
       expect(() => {
         ParameterValidators.validateEntity('invalid', ['product', 'stock', 'shopping_list']);
-      }).toThrow('Unsupported entity: invalid');
+      }).toThrow('Unsupported entity \'invalid\'. Supported entities: product, stock, shopping_list');
     });
   });
 
@@ -150,7 +150,7 @@ describe('Refactored Validator Modules', () => {
       expect(() => TypeValidators.validateId('abc')).toThrow('id must be a valid number');
       expect(() => TypeValidators.validateId(null)).toThrow('id is required');
       expect(() => TypeValidators.validateId(undefined)).toThrow('id is required');
-      expect(() => TypeValidators.validateId(3.14)).toThrow('id must be a whole number');
+      expect(() => TypeValidators.validateId(3.14)).toThrow('id must be an integer');
 
       // Test options
       expect(() => TypeValidators.validateId(0, 'id', { allowZero: true })).not.toThrow();
@@ -161,7 +161,7 @@ describe('Refactored Validator Modules', () => {
     test('should validate strings with advanced options', () => {
       // Basic string validation
       expect(() => TypeValidators.validateString('hello', 'test')).not.toThrow();
-      expect(() => TypeValidators.validateString(null, 'test')).toThrow('test is required');
+      expect(() => TypeValidators.validateString(null, 'test')).toThrow('test must be a string');
       expect(() => TypeValidators.validateString(123, 'test')).toThrow('test must be a string');
 
       // Length constraints
@@ -205,7 +205,7 @@ describe('Refactored Validator Modules', () => {
       // Basic number validation
       expect(() => TypeValidators.validateNumber(42, 'test')).not.toThrow();
       expect(() => TypeValidators.validateNumber('123', 'test')).not.toThrow(); // String numbers should be converted
-      expect(() => TypeValidators.validateNumber(null, 'test')).toThrow('test is required');
+      expect(() => TypeValidators.validateNumber(null, 'test')).toThrow('test must be a number');
       expect(() => TypeValidators.validateNumber('abc', 'test')).toThrow('test must be a valid number');
 
       // Range validation
@@ -276,7 +276,7 @@ describe('Refactored Validator Modules', () => {
     test('should validate arrays with element validation', () => {
       // Basic array validation
       expect(() => TypeValidators.validateArray([1, 2, 3], 'test')).not.toThrow();
-      expect(() => TypeValidators.validateArray(null, 'test')).toThrow('test is required');
+      expect(() => TypeValidators.validateArray(null, 'test')).toThrow('test must be an array');
       expect(() => TypeValidators.validateArray('not-array', 'test')).toThrow('test must be an array');
 
       // Length constraints
@@ -323,7 +323,7 @@ describe('Refactored Validator Modules', () => {
       // Invalid URLs
       expect(() => FormatValidators.validateUrl('not-a-url')).toThrow('Invalid URL format');
       expect(() => FormatValidators.validateUrl('ftp://example.com')).toThrow('URL must use HTTP or HTTPS protocol');
-      expect(() => FormatValidators.validateUrl(null)).toThrow('URL is required');
+      expect(() => FormatValidators.validateUrl(null)).toThrow('URL must be a string');
 
       // HTTPS requirement
       expect(() => {
@@ -381,7 +381,7 @@ describe('Refactored Validator Modules', () => {
       expect(() => FormatValidators.validateBarcode('1234567890123')).not.toThrow(); // EAN-13
 
       // Invalid barcodes
-      expect(() => FormatValidators.validateBarcode(null)).toThrow('Barcode is required');
+      expect(() => FormatValidators.validateBarcode(null)).toThrow('Barcode must be a string');
       expect(() => FormatValidators.validateBarcode('')).toThrow('Barcode cannot be empty');
       expect(() => FormatValidators.validateBarcode('123')).toThrow('Barcode must be at least 8 characters');
 
@@ -476,7 +476,7 @@ describe('Refactored Validator Modules', () => {
           group: 'receipts',
           fileName: '../../../etc/passwd'
         });
-      }).toThrow('Invalid file name');
+      }).toThrow('Security violation: Path traversal attempt detected');
 
       expect(() => {
         ConfigValidators.validateFileParams({
@@ -488,7 +488,7 @@ describe('Refactored Validator Modules', () => {
 
     test('should validate setting keys', () => {
       expect(() => ConfigValidators.validateSettingKey('FEATURE_FLAG_SHOPPING_LIST')).not.toThrow();
-      expect(() => ConfigValidators.validateSettingKey(null)).toThrow('Setting key is required');
+      expect(() => ConfigValidators.validateSettingKey(null)).toThrow('Setting key must be a non-empty string');
       expect(() => ConfigValidators.validateSettingKey('')).toThrow('Setting key cannot be empty');
       expect(() => ConfigValidators.validateSettingKey('invalid key')).toThrow('Setting key must be alphanumeric');
     });
@@ -501,7 +501,7 @@ describe('Refactored Validator Modules', () => {
       };
 
       expect(() => ConfigValidators.validateData(validData)).not.toThrow();
-      expect(() => ConfigValidators.validateData(null)).toThrow('Data is required');
+      expect(() => ConfigValidators.validateData(null)).toThrow('Data must be an object');
       expect(() => ConfigValidators.validateData([])).toThrow('Data must be an object');
 
       // With schema validation
@@ -579,7 +579,7 @@ describe('Refactored Validator Modules', () => {
 
       expect(() => {
         SchemaValidators.validateFieldType(123, { type: 'string' }, 'name');
-      }).toThrow('Field name must be of type string');
+      }).toThrow('name must be a string');
 
       // Number field with constraints
       expect(() => {
