@@ -11,26 +11,31 @@ coverage/
 .travis.yml
 .circleci/
 
-# Documentation source files
+# Documentation source files (keep README, CHANGELOG, LICENSE)
 docs/
 *.md
 !README.md
 !CHANGELOG.md
 !LICENSE
 
-# Development files
+# Development configs and scripts
 .eslintrc*
 .prettierrc*
 .editorconfig
 jest.config.js
 .babelrc*
 webpack.config.js
+config/
+scripts/
+dist/
 
-# IDE files
+# IDE / AI tooling
 .vscode/
 .idea/
 *.sublime-*
 *.code-workspace
+.claude/
+agent-skills/
 
 # OS files
 .DS_Store
@@ -46,9 +51,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment files
-.env*
-!.env.example
+# Environment files (keep the example template)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
 
 # Build artifacts
 dist/

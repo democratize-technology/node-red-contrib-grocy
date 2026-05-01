@@ -1,4 +1,8 @@
+const path = require('path');
+
 module.exports = {
+  rootDir: path.resolve(__dirname, '..'),
+
   // Test environment with proper Node.js setup
   testEnvironment: 'node',
   
