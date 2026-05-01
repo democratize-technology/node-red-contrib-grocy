@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"w:\\\\prj\\\\node-red-contrib-grocy\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(npm test *)",
+      "Bash(npx jest *)",
+      "Bash(npm install *)"
+    ]
+  }
+}

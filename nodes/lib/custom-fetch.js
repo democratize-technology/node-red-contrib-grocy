@@ -1,5 +1,19 @@
 const https = require('https');
 const http = require('http');
+const dns = require('dns');
+
+// Force IPv4 for mDNS (.local) hostnames — link-local IPv6 addresses returned
+// by mDNS require a zone ID that Node.js cannot specify in HTTPS connections.
+function ipv4Lookup(hostname, options, callback) {
+    dns.lookup(hostname, { ...options, family: 4 }, (err, address, family) => {
+        if (err) {
+            // Fall back to default lookup if IPv4 not available
+            dns.lookup(hostname, options, callback);
+        } else {
+            callback(null, address, family);
+        }
+    });
+}
 
 /**
  * Custom fetch wrapper that supports SSL verification options for self-hosted deployments.
@@ -9,28 +23,30 @@ const http = require('http');
  * @param {Object} options - Fetch options including SSL settings
  * @returns {Promise<Response>} - Fetch response
  */
-async function customFetch(url, options = {}) {
+async function customFetch(url, options = {}, _redirectCount = 0) {
+    const MAX_REDIRECTS = 5;
     const parsedUrl = new URL(url);
     const isHttps = parsedUrl.protocol === 'https:';
-    
+
     // Extract custom SSL options (not part of standard fetch)
-    const { 
-        verifySsl = true, 
-        allowSelfSigned = false, 
+    const {
+        verifySsl = true,
+        allowSelfSigned = false,
         timeout = 30000,
-        ...fetchOptions 
+        ...fetchOptions
     } = options;
-    
+
     // If using native fetch and HTTPS with default settings, use it directly
     if (typeof fetch !== 'undefined' && isHttps && verifySsl && !allowSelfSigned) {
         // Add timeout using AbortController
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
-        
+
         try {
             const response = await fetch(url, {
                 ...fetchOptions,
-                signal: controller.signal
+                signal: controller.signal,
+                redirect: 'follow'
             });
             clearTimeout(timeoutId);
             return response;
@@ -42,25 +58,21 @@ async function customFetch(url, options = {}) {
             throw error;
         }
     }
-    
+
     // For HTTP or custom SSL settings, use Node.js http/https modules
     return new Promise((resolve, reject) => {
         const protocol = isHttps ? https : http;
         
         // Build agent options for SSL configuration
         const agentOptions = {
-            timeout: timeout
+            timeout: timeout,
+            // Prefer IPv4 to avoid link-local IPv6 issues with mDNS (.local) hostnames
+            lookup: ipv4Lookup
         };
-        
+
         if (isHttps) {
-            // SSL/TLS options for self-hosted scenarios
-            if (!verifySsl) {
-                // Completely disable certificate verification (use with caution)
+            if (!verifySsl || allowSelfSigned) {
                 agentOptions.rejectUnauthorized = false;
-            } else if (allowSelfSigned) {
-                // Allow self-signed certificates but still verify hostname
-                agentOptions.rejectUnauthorized = false;
-                // Note: In production, you might want to pin specific certificates here
             }
         }
         
@@ -76,12 +88,31 @@ async function customFetch(url, options = {}) {
         };
         
         const req = protocol.request(parsedUrl, requestOptions, (res) => {
+            // Follow redirects (301, 302, 303, 307, 308)
+            if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
+                res.resume(); // drain the response body
+                if (_redirectCount >= MAX_REDIRECTS) {
+                    return reject(new Error(`Too many redirects (max ${MAX_REDIRECTS})`));
+                }
+                const redirectUrl = new URL(res.headers.location, url).toString();
+                // 303 always converts to GET; for others preserve the method
+                const redirectMethod = res.statusCode === 303 ? 'GET' : (fetchOptions.method || 'GET');
+                const redirectOptions = {
+                    ...options,
+                    method: redirectMethod,
+                    // Don't forward body on GET redirect
+                    body: redirectMethod === 'GET' ? undefined : fetchOptions.body
+                };
+                resolve(customFetch(redirectUrl, redirectOptions, _redirectCount + 1));
+                return;
+            }
+
             let data = '';
-            
+
             res.on('data', (chunk) => {
                 data += chunk;
             });
-            
+
             res.on('end', () => {
                 // Create a fetch-like response object
                 const response = {

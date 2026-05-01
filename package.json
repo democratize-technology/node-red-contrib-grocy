@@ -22,7 +22,8 @@
     "pretest": "echo 'Running pre-test checks...'",
     "posttest": "echo 'Tests completed.'",
     "release": "npm run test && npm publish",
-    "release:dry": "npm run test && npm publish --dry-run"
+    "release:dry": "npm run test && npm publish --dry-run",
+    "test:live": "jest --config config/jest.live.config.js --runInBand --forceExit"
   },
   "keywords": [
     "node-red",
@@ -85,6 +86,7 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
+    "dotenv": "^17.4.2",
     "jest": "^29.7.0",
     "nock": "^14.0.10",
     "node-red": "^4.1.0",

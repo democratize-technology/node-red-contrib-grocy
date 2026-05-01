@@ -57,24 +57,25 @@ class GrocyAPIWrapper {
             });
         }
         
+        const hasBody = data !== null && (method === 'POST' || method === 'PUT');
+
         const options = {
             method,
             headers: {
                 'GROCY-API-KEY': this.apiKey,
-                'Content-Type': 'application/json'
+                ...(hasBody ? { 'Content-Type': 'application/json' } : {})
             },
-            // Include our SSL options
             verifySsl: this.sslOptions.verifySsl,
             allowSelfSigned: this.sslOptions.allowSelfSigned,
             timeout: this.sslOptions.timeout
         };
-        
+
         // Add correlation ID header if available
         if (cid) {
             options.headers['X-Correlation-ID'] = cid;
         }
-        
-        if (data && (method === 'POST' || method === 'PUT')) {
+
+        if (hasBody) {
             options.body = JSON.stringify(data);
         }
         
@@ -200,89 +201,247 @@ class GrocyAPIWrapper {
     
     // Shopping list methods
     async getShoppingList() {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.getShoppingList();
-        }
-        return this.request('/stock/shoppinglist');
+        return this.request('/objects/shopping_list');
     }
-    
+
     async addToShoppingList(productId, amount, note) {
-        const data = {
-            product_id: productId,
-            amount: amount,
-            note: note
-        };
-        
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.addToShoppingList(productId, amount, note);
-        }
-        return this.request('/stock/shoppinglist/add-product', 'POST', data);
+        return this.request('/shoppinglist/add-product', 'POST', { product_id: productId, amount, note });
     }
-    
+
+    async addProductToShoppingList(data) {
+        return this.request('/shoppinglist/add-product', 'POST', data);
+    }
+
+    async removeProductFromShoppingList(data) {
+        return this.request('/shoppinglist/remove-product', 'POST', data);
+    }
+
+    async clearShoppingList(data = {}) {
+        return this.request('/shoppinglist/clear', 'POST', data);
+    }
+
+    async addMissingProductsToShoppingList(data = {}) {
+        return this.request('/shoppinglist/add-missing-products', 'POST', data);
+    }
+
+    async addOverdueProductsToShoppingList(data = {}) {
+        return this.request('/shoppinglist/add-overdue-products', 'POST', data);
+    }
+
+    async addExpiredProductsToShoppingList(data = {}) {
+        return this.request('/shoppinglist/add-expired-products', 'POST', data);
+    }
+
+    // Stock action methods
+    async getVolatileStock(dueSoonDays) {
+        const params = dueSoonDays !== undefined ? { due_soon_days: dueSoonDays } : {};
+        return this.request('/stock/volatile', 'GET', null, params);
+    }
+
+    async getProductDetails(productId) {
+        return this.request(`/stock/products/${productId}`);
+    }
+
+    async getProductByBarcode(barcode) {
+        return this.request(`/stock/products/by-barcode/${encodeURIComponent(barcode)}`);
+    }
+
+    async addProductToStock(productId, data = {}) {
+        return this.request(`/stock/products/${productId}/add`, 'POST', data);
+    }
+
+    async addProductToStockByBarcode(barcode, data = {}) {
+        return this.request(`/stock/products/by-barcode/${encodeURIComponent(barcode)}/add`, 'POST', data);
+    }
+
+    async consumeProduct(productId, data = {}) {
+        return this.request(`/stock/products/${productId}/consume`, 'POST', data);
+    }
+
+    async consumeProductByBarcode(barcode, data = {}) {
+        return this.request(`/stock/products/by-barcode/${encodeURIComponent(barcode)}/consume`, 'POST', data);
+    }
+
+    async inventoryProduct(productId, data = {}) {
+        return this.request(`/stock/products/${productId}/inventory`, 'POST', data);
+    }
+
+    async transferProduct(productId, data = {}) {
+        return this.request(`/stock/products/${productId}/transfer`, 'POST', data);
+    }
+
+    async openProduct(productId, data = {}) {
+        return this.request(`/stock/products/${productId}/open`, 'POST', data);
+    }
+
     // Chores methods
-    async getChores() {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.getChores();
-        }
-        return this.request('/chores');
+    async getChores(queryOptions = {}) {
+        return this.request('/chores', 'GET', null, queryOptions);
     }
-    
+
     async getChore(choreId) {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.getChore(choreId);
-        }
         return this.request(`/chores/${choreId}`);
     }
-    
-    // Battery methods
-    async getBatteries() {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.getBatteries();
-        }
-        return this.request('/batteries');
+
+    async getChoreDetails(choreId) {
+        return this.request(`/chores/${choreId}`);
     }
-    
+
+    async executeChore(choreId, data = {}) {
+        return this.request(`/chores/${choreId}/execute`, 'POST', data);
+    }
+
+    // Task methods
+    async getTasks(queryOptions = {}) {
+        return this.request('/tasks', 'GET', null, queryOptions);
+    }
+
+    async completeTask(taskId, data = {}) {
+        return this.request(`/tasks/${taskId}/complete`, 'POST', data);
+    }
+
+    async undoTask(taskId) {
+        return this.request(`/tasks/${taskId}/undo`, 'POST');
+    }
+
+    // Battery methods
+    async getBatteries(queryOptions = {}) {
+        return this.request('/batteries', 'GET', null, queryOptions);
+    }
+
     async getBattery(batteryId) {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.getBattery(batteryId);
-        }
         return this.request(`/batteries/${batteryId}`);
     }
-    
-    // Generic entity methods
-    async getObjects(entity) {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.getObjects(entity);
-        }
-        return this.request(`/objects/${entity}`);
+
+    async getBatteryDetails(batteryId) {
+        return this.request(`/batteries/${batteryId}`);
     }
-    
+
+    async chargeBattery(batteryId, data = {}) {
+        return this.request(`/batteries/${batteryId}/charge`, 'POST', data);
+    }
+
+    // Generic entity methods
+    async getObjects(entity, queryOptions = {}) {
+        return this.request(`/objects/${entity}`, 'GET', null, queryOptions);
+    }
+
     async getObject(entity, objectId) {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.getObject(entity, objectId);
-        }
         return this.request(`/objects/${entity}/${objectId}`);
     }
-    
+
     async createObject(entity, data) {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.createObject(entity, data);
-        }
         return this.request(`/objects/${entity}`, 'POST', data);
     }
-    
+
+    async addObject(entity, data) {
+        return this.createObject(entity, data);
+    }
+
     async editObject(entity, objectId, data) {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.editObject(entity, objectId, data);
-        }
         return this.request(`/objects/${entity}/${objectId}`, 'PUT', data);
     }
-    
+
     async deleteObject(entity, objectId) {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.deleteObject(entity, objectId);
-        }
         return this.request(`/objects/${entity}/${objectId}`, 'DELETE');
+    }
+
+    async getUserfields(entity, objectId) {
+        return this.request(`/objects/${entity}/${objectId}/userfields`);
+    }
+
+    async setUserfields(entity, objectId, data) {
+        return this.request(`/userfields/${entity}/${objectId}`, 'PUT', data);
+    }
+
+    // Recipe methods
+    async getRecipes(queryOptions = {}) {
+        return this.request('/recipes', 'GET', null, queryOptions);
+    }
+
+    async getRecipeFulfillment(recipeId) {
+        return this.request(`/recipes/${recipeId}/fulfillment`);
+    }
+
+    async consumeRecipe(recipeId) {
+        return this.request(`/recipes/${recipeId}/consume`, 'POST');
+    }
+
+    async getAllRecipesFulfillment(queryOptions = {}) {
+        return this.request('/recipes/fulfillment', 'GET', null, queryOptions);
+    }
+
+    async addRecipeProductsToShoppingList(recipeId, data = {}) {
+        return this.request(`/recipes/${recipeId}/add-products-to-shoppinglist`, 'POST', data);
+    }
+
+    // User methods
+    async getUsers(queryOptions = {}) {
+        return this.request('/users', 'GET', null, queryOptions);
+    }
+
+    async createUser(data) {
+        return this.request('/users', 'POST', data);
+    }
+
+    async editUser(userId, data) {
+        return this.request(`/users/${userId}`, 'PUT', data);
+    }
+
+    async deleteUser(userId) {
+        return this.request(`/users/${userId}`, 'DELETE');
+    }
+
+    async getCurrentUser() {
+        return this.request('/user/settings');
+    }
+
+    // System methods
+    async getDbChangedTime() {
+        return this.request('/system/db-changed-time');
+    }
+
+    async getConfig() {
+        return this.request('/system/config');
+    }
+
+    async getTime(offset) {
+        return this.request('/system/time', 'GET', null, offset !== undefined ? { offset } : {});
+    }
+
+    // User settings methods
+    async getUserSettings() {
+        return this.request('/user/settings');
+    }
+
+    async getUserSetting(settingKey) {
+        return this.request(`/user/settings/${settingKey}`);
+    }
+
+    async setUserSetting(settingKey, data) {
+        return this.request(`/user/settings/${settingKey}`, 'PUT', data);
+    }
+
+    // File methods
+    async getFile(group, fileName) {
+        return this.request(`/files/${group}/${encodeURIComponent(fileName)}`);
+    }
+
+    async uploadFile(group, fileName, fileData) {
+        return this.request(`/files/${group}/${encodeURIComponent(fileName)}`, 'PUT', fileData);
+    }
+
+    async deleteFile(group, fileName) {
+        return this.request(`/files/${group}/${encodeURIComponent(fileName)}`, 'DELETE');
+    }
+
+    // Calendar methods
+    async getCalendar() {
+        return this.request('/calendar/ical');
+    }
+
+    async getCalendarSharingLink() {
+        return this.request('/calendar/ical/sharing-link');
     }
 }
 
