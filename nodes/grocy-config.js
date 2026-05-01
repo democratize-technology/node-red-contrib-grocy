@@ -64,4 +64,32 @@ module.exports = function(RED) {
             apiKey: { type: "password", required: true }
         }
     });
+
+    // Admin HTTP endpoint — lets the config UI test the connection before saving
+    RED.httpAdmin.post('/grocy/test-connection',
+        RED.auth.needsPermission('grocy-config.write'),
+        async (req, res) => {
+            const { apiUrl, apiKey, verifySsl, allowSelfSigned, timeout } = req.body || {};
+            if (!apiUrl || !apiKey) {
+                return res.json({ success: false, error: 'API URL and API Key are required' });
+            }
+            try {
+                const GrocyAPIWrapper = require('./lib/grocy-api-wrapper');
+                const api = new GrocyAPIWrapper(
+                    apiUrl,
+                    apiKey,
+                    {
+                        verifySsl: verifySsl !== false,
+                        allowSelfSigned: allowSelfSigned === true,
+                        timeout: Math.min(timeout || 10000, 15000)
+                    },
+                    { enabled: false }
+                );
+                const info = await api.getSystemInfo();
+                res.json({ success: true, grocy_version: info.grocy_version, php_version: info.php_version });
+            } catch (err) {
+                res.json({ success: false, error: err.message });
+            }
+        }
+    );
 };

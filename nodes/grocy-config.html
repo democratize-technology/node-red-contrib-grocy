@@ -23,6 +23,59 @@
             return this.name || "Grocy API";
         },
         oneditprepare: function() {
+            // Test connection button
+            $('#grocy-test-connection-btn').on('click', function() {
+                const apiUrl = $('#node-config-input-apiUrl').val().trim();
+                const apiKey = $('#node-config-input-apiKey').val().trim();
+                const verifySsl = $('#node-config-input-verifySsl').is(':checked');
+                const allowSelfSigned = $('#node-config-input-allowSelfSigned').is(':checked');
+                const timeout = parseInt($('#node-config-input-timeout').val()) || 10000;
+
+                if (!apiUrl || !apiKey) {
+                    $('#grocy-test-status')
+                        .removeClass()
+                        .addClass('grocy-test-status grocy-test-error')
+                        .html('<i class="fa fa-exclamation-triangle"></i> API URL and API Key are required')
+                        .show();
+                    return;
+                }
+
+                $('#grocy-test-status')
+                    .removeClass()
+                    .addClass('grocy-test-status grocy-test-pending')
+                    .html('<i class="fa fa-spinner fa-spin"></i> Testing connection…')
+                    .show();
+
+                $.ajax({
+                    url: 'grocy/test-connection',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ apiUrl, apiKey, verifySsl, allowSelfSigned, timeout }),
+                    success: function(result) {
+                        if (result.success) {
+                            $('#grocy-test-status')
+                                .removeClass()
+                                .addClass('grocy-test-status grocy-test-success')
+                                .html('<i class="fa fa-check-circle"></i> Connected! Grocy v' + (result.grocy_version || '?'))
+                                .show();
+                        } else {
+                            $('#grocy-test-status')
+                                .removeClass()
+                                .addClass('grocy-test-status grocy-test-error')
+                                .html('<i class="fa fa-times-circle"></i> ' + (result.error || 'Unknown error'))
+                                .show();
+                        }
+                    },
+                    error: function(jqXHR) {
+                        $('#grocy-test-status')
+                            .removeClass()
+                            .addClass('grocy-test-status grocy-test-error')
+                            .html('<i class="fa fa-times-circle"></i> Request failed: ' + (jqXHR.statusText || 'unknown'))
+                            .show();
+                    }
+                });
+            });
+
             // Function to update warnings based on settings
             function updateSecurityWarnings() {
                 const url = $('#node-config-input-apiUrl').val();
@@ -154,7 +207,7 @@
     
     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc;">
         <h4><i class="fa fa-clock-o"></i> Connection Settings</h4>
-        
+
         <div class="form-row">
             <label for="node-config-input-timeout"><i class="fa fa-hourglass-half"></i> Timeout</label>
             <input type="number" id="node-config-input-timeout" min="1000" max="300000" placeholder="30000">
@@ -164,7 +217,48 @@
             </div>
         </div>
     </div>
+
+    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc;">
+        <h4><i class="fa fa-plug"></i> Test Connection</h4>
+        <div class="form-row">
+            <label>&nbsp;</label>
+            <button id="grocy-test-connection-btn" class="red-ui-button" type="button">
+                <i class="fa fa-play"></i> Test Connection
+            </button>
+        </div>
+        <div class="form-row">
+            <label>&nbsp;</label>
+            <div id="grocy-test-status" class="grocy-test-status" style="display:none;"></div>
+        </div>
+    </div>
 </script>
+
+<style>
+.grocy-test-status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 400px;
+    word-break: break-word;
+}
+.grocy-test-pending {
+    background: #e8f4fd;
+    border: 1px solid #bee3f8;
+    color: #2b6cb0;
+}
+.grocy-test-success {
+    background: #f0fff4;
+    border: 1px solid #9ae6b4;
+    color: #276749;
+}
+.grocy-test-error {
+    background: #fff5f5;
+    border: 1px solid #feb2b2;
+    color: #c53030;
+}
+</style>
 
 <script type="text/html" data-help-name="grocy-config">
     <p>Grocy API connection configuration with flexible security options for self-hosted deployments.</p>

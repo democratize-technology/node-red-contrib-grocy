@@ -22,15 +22,6 @@ class GrocyAPIWrapper {
             type: 'api-wrapper',
             ...loggingConfig
         }) : null;
-        
-        // Try to load the actual node-grocy module
-        try {
-            const GrocyModule = require('node-grocy');
-            this._baseAPI = new GrocyModule(baseUrl, apiKey);
-        } catch (error) {
-            // Module not available, we'll handle requests directly
-            this._baseAPI = null;
-        }
     }
     
     /**
@@ -166,12 +157,7 @@ class GrocyAPIWrapper {
         }
     }
     
-    // Proxy common methods to either the base API or our custom implementation
     async getSystemInfo() {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            // Use original API for standard HTTPS
-            return this._baseAPI.getSystemInfo();
-        }
         return this.request('/system/info');
     }
     
@@ -186,16 +172,10 @@ class GrocyAPIWrapper {
     
     // Stock methods
     async getStock() {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.getStock();
-        }
         return this.request('/stock');
     }
-    
+
     async getStockByProductId(productId) {
-        if (this._baseAPI && this.sslOptions.verifySsl && !this.sslOptions.allowSelfSigned) {
-            return this._baseAPI.getStockByProductId(productId);
-        }
         return this.request(`/stock/products/${productId}`);
     }
     
